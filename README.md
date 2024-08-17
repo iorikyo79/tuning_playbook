@@ -275,6 +275,7 @@
     -   반면에 적은 단계로 학습시 각 실행이 더 빠르고 자원을 적게 사용함. 튜닝 주기 사이 시간이 단축되며 더 많은 실험을 병렬로 실행 가능함.
     -   주의 사항으로. 처음에 너무 많은 단계를 선택시 나중에 줄이기 어려울 수 있음.  (Learning rate가 튜닝이 된 경우)
 
+
 ## A scientific approach to improving model performance
 
 **모델 성능 향상을 위한 과학적 접근법**
@@ -290,135 +291,84 @@
 
 **점진적인 튜닝 전략**
 
-***Summary:*** *간단한 설정으로 시작하여 문제에 대한 이해를 쌓으면서 점진적으로 개선합니다. 불필요한 복잡성을 피하기 위해 모든 개선이 강력한 증거를 기반으로 하는지 확인합니다.*
+***Summary:*** ***간단한 설정으로 시작**하여 문제에 대한 이해를 쌓으면서 **점진적으로 개선**합니다. 불필요한 복잡성을 피하기 위해 모든 개선이 강력한 **증거를 기반**으로 하는지 확인합니다.*
 
 -   궁극적인 목표: 모델의 성능을 최대화하는 설정 찾기이지만 상황에 따라 다를 수 있음:
         - 정해진 기한까지 모델 개선 최대화 (예: 대회 제출)
         - 무기한 모델 지속 개선 (예: 프로덕션 모델 계속 개선)
--   이론적으로, 모든 가능한 설정을 자동으로 탐색하는 알고리즘을 사용할수 있으나 현실적으로 불가능함.
-    -   가능한 설정 공간이 매우 광범위
-    -   인간의 지도 없이 효율적으로 탐색할 만큼 정교한 알고리즘의 부재
--   대부분의 자동 탐색 알고리즘은 수동으로 설계된 탐색공간(Search space! 중요!)에 의존.
--   가장 효과적인 성능 최대화 방법은 1) 간단한 설정으로 시작하여 2) 문제에 대한 이해를 쌓으며 기능을 추가하면서 개선하는 것임 3) 각 튜닝 라운드에서 자동화된 탐색 알고리즘을 사용하고 4) 이해도 증가에 따라 탐색공간을 지속적으로 업데이터 하는것.
--   The most effective way to maximize performance is to start with a simple
-    configuration and incrementally add features and make improvements while
-    building up insight into the problem.
-    -   We use automated search algorithms in each round of tuning and
-        continually update our search spaces as our understanding grows.
--   As we explore, we will naturally find better and better configurations and
-    therefore our "best" model will continually improve.
-    -   We call it a *launch* when we update our best configuration (which may
-        or may not correspond to an actual launch of a production model).
-    -   For each launch, we must make sure that the change is based on strong
-        evidence – not just random chance based on a lucky configuration – so
-        that we don't add unnecessary complexity to the training pipeline.
+-   이론적으로, 모든 가능한 설정을 **자동으로 탐색하는 알고리즘**을 사용할수 있으나 **현실적으로 불가**능함.
+    -   *가능한 설정 공간이 매우 광범위*
+    -   인간의 지도 없이 효율적으로 탐색할 만큼 *정교한 알고리즘의 부재*
+-   **대부분의 자동 탐색 알고리즘**은 **수동으로 설계된 탐색공간(Search space! 중요!)에 의존**.
+-   가장 효과적인 성능 최대화 방법은 1) **간단한 설정으로 시작**하여 2) **문제에 대한 이해를 쌓으며 기능을 추가하면서 개선**하는 것임 3) **각 튜닝 라운드에서 자동화된 탐색 알고리즘을 사용**하고 4) 이해도 증가에 따라 **탐색공간을 지속적으로 업데이트** 하는것.
+-   탐색 과정에서 자연스럽게 더 나은 설정을 찾을수 있으며 모델이 점차 개선됨.
+    -   가장 좋은 성능의 설정으로 학습되면 **출시(launch)** 를 하게됨.
+    -   '출시'시에 주의사항으로는 1)**강력한 증거기반**으로 변경이 되어야하고 2) 우연한 행운으로 인한 설정은 피해야 함. 3) 학습 파이프라인에 불필요한 항목이 들어가서 복잡성이 증가하면 안됨.
 
-At a high level, our incremental tuning strategy involves repeating the
-following four steps:
+즉, 다음과 같은 **4단계의 전략적인 튜닝 단계를 반복**해야 함:
 
-1.  Identify an appropriately-scoped goal for the next round of experiments.
-2.  Design and run a set of experiments that makes progress towards this goal.
-3.  Learn what we can from the results.
-4.  Consider whether to launch the new best configuration.
+1.  **다음 실험 라운드의 적절한 범위의 목표 식별**
+2.  **목표 달성을 위한 실험 설계 및 실행**
+3.  **실험 결과로부터 깨닳음(학습)**
+4.  새로운 최고 설정의 출시 여부 고려.
 
-The remainder of this section will consider this strategy in much greater
-detail.
+이 문서의 나머지 부분에서는 이 전략을 더욱 자세히 다룰 것임.
 
 ### Exploration vs exploitation
 
-***Summary:*** *Most of the time, our primary goal is to gain insight into the
-problem.*
+**탐색 vs 활용**
 
--   Although one might think we would spend most of our time trying to maximize
-    performance on the validation set, in practice we spend the majority of our
-    time trying to gain insight into the problem, and comparatively little time
-    greedily focused on the validation error.
-    -   In other words, we spend most of our time on "exploration" and only a
-        small amount on "exploitation".
--   In the long run, understanding the problem is critical if we want to
-    maximize our final performance. Prioritizing insight over short term gains
-    can help us:
-    -   Avoid launching unnecessary changes that happened to be present in
-        well-performing runs merely through historical accident.
-    -   Identify which hyperparameters the validation error is most sensitive
-        to, which hyperparameters interact the most and therefore need to be
-        re-tuned together, and which hyperparameters are relatively insensitive
-        to other changes and can therefore be fixed in future experiments.
-    -   Suggest potential new features to try, such as new regularizers if
-        overfitting is an issue.
-    -   Identify features that don't help and therefore can be removed, reducing
-        the complexity of future experiments.
-    -   Recognize when improvements from hyperparameter tuning have likely
-        saturated.
-    -   Narrow our search spaces around the optimal value to improve tuning
-        efficiency.
--   When we are eventually ready to be greedy, we can focus purely on the
-    validation error even if the experiments aren't maximally informative about
-    the structure of the tuning problem.
+***Summary:*** *대부분의 경우 우리의 주요 목표는 문제에 대한 통찰력을 얻는 것임.*
+
+-   시간 분배의 현실 : 
+    -   예상 : 검증 세트에서의 성능 최대화에 집중 한다고 생각 하지만
+    -   실제 : 대부분의 시간을 문제 이해에 할애하고 있음
+    -   Validation error에 직접적으로 집중하는 시간은 상대적으로 적음.
+-   장기적 관점에서 문제에 대한 이해가 성능 최적화에 있어서 가장 중요함. 단기적 이익보다 이러한 통찰력을 우선할때의 이점은 아래와 같음:
+    -   불필요한 변경을 방지할 수 있다. (우연히 좋은 성능을 보인 설정의 무분별한 적용 예방)
+    -   하이퍼파라미터의 민감도 파악이 가능하다. 1)가장 민감한 파라미터의 식별 2)상호 영향을 크게주는 하이퍼파라미터 그룹화(함께 재조정 필요한 항목) 3)상대적으로 둔감한 하이퍼파라미터 식별(향후 실험에서 고정 가능)
+    -   가능성이 있는 새로운 기능을 제안 할수 있음 (예를 들면, 과적합 문제시 새로운 정규화 기법 시도)
+    -   불필요한 기능의 제거 (도움이 되지 않거나 실험의 복잡성을 감소시킬 수 있음)
+    -   튜닝 포화 시점 인식 (하이퍼파라미터 튜닝으로 인한 개선이 한계에 도달했는지 파악)
+    -   탐색 공간의 최적화 (최적값 주변으로 탐색 공간을 좁혀 튜닝 효율성 향상 가능)
+-   활용단계 :
+    - 이전 단계까지 진행하였다면 이제부터는 검증 오류에만 집중할수 있음
+    - 더이상 문제의 구조나 하이퍼파라미터의 관계를 파악하지 않고 지금까지 얻은 지식을 바탕으로 성능을 올리는데만 집중하는 단계임..
+
 
 ### Choosing the goal for the next round of experiments
 
-***Summary:*** *Each round of experiments should have a clear goal and be
-sufficiently narrow in scope that the experiments can actually make progress
-towards the goal.*
+**다음 실험 목표 선택**
 
--   Each round of experiments should have a clear goal and be sufficiently
-    narrow in scope that the experiments can actually make progress towards the
-    goal: if we try to add multiple features or answer multiple questions at
-    once, we may not be able to disentangle the separate effects on the results.
--   Example goals include:
-    -   Try a potential improvement to the pipeline (e.g. a new regularizer,
-        preprocessing choice, etc.).
-    -   Understand the impact of a particular model hyperparameter (e.g. the
-        activation function)
-    -   Greedily minimize validation error.
+***Summary:*** *각 실험 라운드는 명확한 목표를 가져야 하며, 실험이 실제로 목표를 향해 진전을 이룰 수 있을 만큼 충분히 좁은 범위여야 합니다.*
+
+-   실험 라운드의 기본 원칙은 다음과 같습니다. 1) 명확한 목표 설정 2) 충분히 좁은 범위 유지. 여러 기능을 동시에 추가하거나 여러 질문에 답하려 하면 각각의 효과를 구분하기 어려움.
+-   라운드별 목표의 예시:
+    -   파이프라인 개선 시도 1) 새로운 정규화 기법 도입 2) 새로운 전처리 방법 적용
+    -   특정 모델 하이퍼파라미터의 영향 이해 (e.g. 활성화 함수의 영향 분석)
+    -   Validation error의 탐욕적 최소화 (현재 알고 있는 최선의 방법으로 성능 극대화)
+
 
 ### Designing the next round of experiments
 
-***Summary:*** *Identify which hyperparameters are scientific, nuisance, and
-fixed hyperparameters for the experimental goal. Create a sequence of studies to
-compare different values of the scientific hyperparameters while optimizing over
-the nuisance hyperparameters. Choose the search space of nuisance
-hyperparameters to balance resource costs with scientific value.*
+**다음 실험 라운드 설계하기**
+
+***Summary:*** *실험 목표에 따라 과학적 파라미터, 방해 파라미터, 고정 파라미터를 식별한다. 방해 파라미터를 최적화하면서 과학적 파라미터의 다양한 값을 비교하는 일련의 연구를 구성한다. 자원 비용과 과학적 가치의 균형을 맞추기 위해 방해 파라미터의 탐색 공간을 선택.*
 
 #### Identifying scientific, nuisance, and fixed hyperparameters
+
+**과학적, 방해, 고정 하이퍼파라미터 식별하기**
 
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
--   For a given goal, all hyperparameters will be either **scientific
-    hyperparameters**, **nuisance hyperparameters**, or **fixed
-    hyperparameters**.
-    -   Scientific hyperparameters are those whose effect on the model's
-        performance we're trying to measure.
-    -   Nuisance hyperparameters are those that need to be optimized over in
-        order to fairly compare different values of the scientific
-        hyperparameters. This is similar to the statistical concept of
+-   주어진 목표에 대해 모든 하이퍼파라미터는 **과학적 하이퍼파라미너, 방해 하이퍼파라미터, 고정 하이퍼파라미터**중 하나가 됨.
+    -   ***과학적 파라미터 Scientific hyperparameters*** : 모델 성능에 미치는 영향을 측정하고자 하는 파라미터.
+    -   ***방해 파라미터 Nuisance hyperparameters***: 과학적 파라미터의 다양한 값을 공정하게 비교하기 위해 최적화해야하는 파라미터. 통계적 개념인 방해 변화와 유사함.
         [nuisance parameters](https://en.wikipedia.org/wiki/Nuisance_parameter).
-    -   Fixed hyperparameters will have their values fixed in the current round
-        of experiments. These are hyperparameters whose values do not need to
-        (or we do not want them to) change when comparing different values of
-        the scientific hyperparameters.
-        -   By fixing certain hyperparameters for a set of experiments, we must
-            accept that conclusions derived from the experiments might not be
-            valid for other settings of the fixed hyperparameters. In other
-            words, fixed hyperparameters create caveats for any conclusions we
-            draw from the experiments.
--   For example, if our goal is to "determine whether a model with more hidden
-    layers will reduce validation error", then the number of hidden layers is a
-    scientific hyperparameter.
-    -   The learning rate is a nuisance hyperparameter because we can only
-        fairly compare models with different numbers of hidden layers if the
-        learning rate is tuned separately for each number of layers (the optimal
-        learning rate generally depends on the model architecture).
-    -   The activation function could be a fixed hyperparameter if we have
-        determined in prior experiments that the best choice of activation
-        function is not sensitive to model depth, or if we are willing to limit
-        our conclusions about the number of hidden layers to only cover this
-        specific choice of activation function. Alternatively, it could be a
-        nuisance parameter if we are prepared to tune it separately for each
-        number of hidden layers.
+    -   ***고정 파라미터 Fixed hyperparameters***: 현재 실험 라운드에서 값이 고정될 하이퍼파라미터. 이는 과학적 파라미터의 다양한 값을 비교할 때 변경할 필요가 없거나 변경을 원하지 않는 파라미터임.
+        -   일부 변수를 고정하면 실험은 단순해지지만, 그 결과의 적용 범위도 제한됨. 그래서 결과를 해석할 때 이런 제한 사항을 항상 염두해야 함. (즉, 고정 파라미터는 일종의 전제 조건이 될 수 있음).
 -   Whether a particular hyperparameter is a scientific hyperparameter, nuisance
     hyperparameter, or fixed hyperparameter is not inherent to that
     hyperparameter, but changes depending on the experimental goal.
