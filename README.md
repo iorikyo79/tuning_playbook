@@ -44,7 +44,7 @@
 
 ## Who is this document for?
 
-이 문서는 딥 러닝 모델의 성능 극대화에 관심 있는 엔지니어와 연구자들을 위한 것입니다. 머신 러닝과 딥 러닝에 대한 기본 지식을 갖춘 개인과 팀 모두에게 유용할 것입니다.
+이 문서는 딥 러닝 **모델의 성능 극대화**에 관심 있는 엔지니어와 연구자들을 위한 것입니다. 머신 러닝과 딥 러닝에 대한 기본 지식을 갖춘 개인과 팀 모두에게 유용할 것입니다.
 
 ## Why a tuning playbook?
 
@@ -92,14 +92,14 @@
 
 프로젝트 초기에 내리는 많은 결정들은 상황 변화가 있을 때만 간헐적으로 재검토하면 됩니다. 아래의 가이드는 다음을 전제로 합니다:
 
-- 문제 정의, 데이터 정제 등 필수 작업이 충분히 완료되어 모델 아키텍처와 훈련 구성에 시간을 투자하는 것이 타당한 상태
-- 훈련 및 평가를 위한 파이프라인이 이미 구축되어 있으며, 다양한 모델에 대한 훈련 및 예측 작업을 쉽게 실행할 수 있는 상태
-- 적절한 평가 지표가 선택되고 구현된 상태. 이 지표들은 실제 배포 환경에서 측정될 것과 최대한 유사해야 함
+- **문제 정의, 데이터 정제 등 필수 작업이 충분히 완료**되어 모델 아키텍처와 훈련 구성에 시간을 투자하는 것이 타당한 상태
+- 훈련 및 평가를 위한 **파이프라인이 이미 구축**되어 있으며, 다양한 모델에 대한 훈련 및 예측 작업을 쉽게 실행할 수 있는 상태
+- **적절한 평가 지표가 선택되고 구현된 상태**. 이 지표들은 실제 배포 환경에서 측정될 것과 최대한 유사해야 함
 
 
 ### Choosing the model architecture
 
-***Summary:*** *새 프로젝트를 시작할 때는 이미 작동하는 모델을 재사용하려 노력하세요.*
+***Summary:*** ***새 프로젝트를 시작할 때는 이미 작동하는 모델을 재사용하려 노력하세요.***
 
 -  먼저 잘 확립되고 널리 사용되는 모델 아키텍처를 선택하여 작동시키세요. 나중에 언제든 커스텀 모델을 만들 수 있습니다.
 -  모델 아키텍처에는 보통 모델의 크기와 세부 사항을 결정하는 다양한 하이퍼파라미터가 있습니다(예: 레이어 수, 레이어 폭, 활성화 함수 유형).
@@ -113,17 +113,17 @@
 
 ### Choosing the optimizer
 
-***Summary:*** *문제 유형에 가장 적합한(잘 알려진) 최적화 알고리즘부터 시작하세요.*
+***Summary:*** ***문제 유형에 가장 적합한(잘 알려진) 최적화 알고리즘부터 시작하세요.***
 
--   어떤 최적화 알고리즘도 모든 유형의 머신러닝 문제와 모델 아키텍처에 대해 "최고"일 수는 없습니다. 심지어 [최적화 알고리즘의 성능을 비교하는 것조차 어려운 일입니다.](https://arxiv.org/abs/1910.05446).
+-   어떤 최적화 알고리즘도 모든 유형의 머신러닝 문제와 모델 아키텍처에 대해 "최고"일 수는 없습니다. 즉, **만능 옵티마이저는 없다!.** 심지어 [최적화 알고리즘의 성능을 비교하는 것조차 어려운 일입니다.](https://arxiv.org/abs/1910.05446).
     🤖
 -   새로운 프로젝트를 시작할 때는 잘 알려진 인기 있는 최적화 알고리즘을 사용하는 것이 좋습니다.
-    -   가능하다면 같은 유형의 문제에서 가장 많이 사용되는 최적화 알고리즘을 선택하세요.
--   선택한 최적화 알고리즘의 *모든* 하이퍼파라미터에 신경 쓸 준비를 하세요.
+    -   가능하다면 **같은 유형의 문제에서 가장 많이 사용되는 최적화 알고리즘**을 선택하세요.
+-   선택한 최적화 알고리즘의 ***모든 하이퍼파라미터*** 에 신경 쓸 준비를 하세요.
     -   하이퍼파라미터가 많은 최적화 알고리즘일수록 최적의 설정을 찾기 위해 더 많은 튜닝 노력이 필요할 수 있습니다.
-    -   이는 특히 프로젝트 초기 단계에서 다양한 하이퍼파라미터(예: 아키텍처 하이퍼파라미터)의 최적 값을 찾으려고 할 때 중요합니다. 이때 최적화 알고리즘의 하이퍼파라미터는 불편한(nuisance) 파라미터로 간주됩니다.
+    -   이는 특히 프로젝트 초기 단계에서 다양한 하이퍼파라미터(예: 아키텍처 하이퍼파라미터)의 최적 값을 찾으려고 할 때 중요합니다. 이때 **최적화 알고리즘의 하이퍼파라미터는 불편한(nuisance) 파라미터로 간주**됩니다.
         [nuisance parameters](#identifying-scientific-nuisance-and-fixed-hyperparameters).
-    -   초기 단계에서는 단순한 최적화 알고리즘(e.g. 고정된 모멘텀을 가진 SGD 또는 고정된 $\epsilon$, $\beta_{1}$, $\beta_{2}$를 가진 Adam)으로 시작하고, 나중에 더 일반적인 최적화 알고리즘으로 전환하는 것이 바람직할 수 있습니다.
+    -   **초기 단계**에서는 **단순한 최적화 알고리즘**(e.g. 고정된 모멘텀을 가진 SGD 또는 고정된 $\epsilon$, $\beta_{1}$, $\beta_{2}$를 가진 Adam)으로 시작하고, **나중에 더 일반적인 최적화 알고리즘으로 전환하는 것이 바람직**할 수 있습니다.
 -   우리가 선호하는 잘 알려진 최적화 알고리즘으로는 다음이 포함됩니다(하지만 여기에만 국한되지 않음):
     -   [SGD with momentum](#what-are-the-update-rules-for-all-the-popular-optimization-algorithms)
         (Nesterov 변형을 선호함)
@@ -134,27 +134,26 @@
 
 ### Choosing the batch size
 
-***Summary:*** *배치 크기는 훈련 속도를 좌우하며, 검증 세트 성능을 직접적으로 조정하기 위한 수단으로 사용해서는 안 됩니다. 이상적인 배치 크기는 사용 가능한 하드웨어가 지원하는 최대 크기일 때가 많습니다.*
+***Summary:*** ***배치 크기는 훈련 속도를 좌우**하며, **검증 세트 성능을 직접적으로 조정하기 위한 수단으로 사용해서는 안 됩니다.** **이상적인 배치 크기**는 사용 **가능한 하드웨어가 지원하는 최대 크기일 때가 많습니다**.*
 
 -  배치 크기는 **훈련 시간**과 **컴퓨팅 자원 소비**를 결정하는 중요한 요소입니다.
-배치 크기를 늘리면 훈련 시간이 줄어들 수 있습니다. 이는 다음과 같은 이유로 매우 유익할 수 있습니다:
-    -   제한된 시간 내에 하이퍼파라미터를 더 철저히 튜닝할 수 있어, 최종 모델이 더 나아질 가능성이 있습니다.
-    -   개발 사이클의 지연 시간이 줄어들어 새로운 아이디어를 더 자주 테스트할 수 있습니다.
+**배치 크기를 늘리면** 훈련 시간이 줄어들 수 있습니다. 이는 다음과 같은 이유로 매우 유익할 수 있습니다:
+    -   **제한된 시간 내에 하이퍼파라미터를 더 철저히 튜닝**할 수 있어, 최종 모델이 더 나아질 가능성이 있습니다.
+    -   **개발 사이클의 지연 시간이 줄어**들어 새로운 아이디어를 더 **자주 테스트**할 수 있습니다.
 -   배치 크기를 늘리면 자원 소비가 줄어들 수도, 늘어날 수도, 변화가 없을 수도 있습니다.
--   배치 크기는 검증 세트 성능을 위해 튜닝해야 하는 하이퍼파라미터로 간주해서는 안 됩니다.
-    -   모든 하이퍼파라미터가 잘 튜닝되고(특히 학습률과 정규화 하이퍼파라미터) 충분한 훈련 단계가 있다면, 동일한 최종 성능을 어떤 배치 크기에서도 달성할 수 있습니다. [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)
+-   ***배치 크기는 검증 세트 성능을 위해 튜닝해야 하는 하이퍼파라미터로 간주해서는 안 됩니다.***
+    -   *모든 하이퍼파라미터가 잘 튜닝되고(특히 학습률과 정규화 하이퍼파라미터) 충분한 훈련 단계가 있다면, 동일한 최종 성능을 어떤 배치 크기에서도 달성할 수 있습니다.* [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)
     -   참고자료 [왜 배치 크기를 검증 세트 성능을 직접적으로 향상시키기 위해 튜닝해서는 안 되는가??](#why-shouldnt-the-batch-size-be-tuned-to-directly-improve-validation-set-performance)
 
 #### 가능한 배치 크기 결정 및 훈련 처리량 추정
-
 
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
--   특정 모델과 최적화 알고리즘을 사용할 때, 하드웨어가 지원할 수 있는 배치 크기 범위가 있습니다. 이때 주로 제약이 되는 요소는 GPU 메모리입니다.
+-   특정 모델과 최적화 알고리즘을 사용할 때, **하드웨어가 지원할 수 있는 배치 크기 범위가 있습니다**. 이때 **주로 제약이 되는 요소는 GPU 메모리**입니다.
 -   안타깝게도, 전체 훈련 프로그램을 실제로 실행하거나 컴파일해 보지 않으면 메모리에 맞는 배치 크기를 미리 계산하기 어렵습니다.
--   가장 쉬운 방법은 작은 단계 수로 훈련을 진행하면서, 배치 크기를 다르게 설정해보는 것입니다. 예를 들어, 배치 크기를 2의 배수로 늘리면서 실행해보다가 메모리 한계를 초과하는 지점을 찾는 방식입니다.
+-   가장 쉬운 방법은 **작은 단계 수로 훈련을 진행**하면서, **배치 크기를 다르게 설정**해보는 것입니다. *예를 들어, 배치 크기를 2의 배수로 늘리면서 실행해보다가 메모리 한계를 초과하는 지점을 찾는 방식*입니다.
 -   각 배치 크기에서 훈련 처리량을 신뢰할 수 있을 만큼 충분히 훈련해야 합니다
 
 <p align="center">training 처리량 = (# 초당 처리된 데이터 수)</p>
@@ -164,9 +163,9 @@
 <p align="center">time per step = (batch size) / (training 처리량)</p>
 
 -   훈련 처리량은 말 그대로 모델이 주어진 시간 동안 처리할 수 있는 데이터 양을 의미합니다. 구체적으로는 초당 처리할 수 있는 샘플의 개수로 표현됩니다. 이 값이 높을수록 모델이 더 많은 데이터를 빠르게 학습할 수 있습니다.
--   배치 크기를 두배로 늘렸다면 동일한 시간동안 처리하는 데이터(훈련 처리량)가 대략 두배가 되어야 합니다.
+-   ***배치 크기를 두배**로 늘렸다면 **동일한 시간동안** 처리하는 **데이터(훈련 처리량)가 대략 두배**가 되어야 합니다.*
 -   만약 그렇지 않다면, 훈련 과정에 I/O 병목이나 계산 노드 간의 동기화 문제가 있을 수 있습니다. 이 문제는 훈련을 진행하기 전에 해결하는 것이 좋습니다.
--   만약 훈련 처리량이 특정 배치 크기까지 증가하다가 멈춘다면, 하드웨어가 더 큰 배치 크기를 지원하더라도 그 최대 배치 크기까지만 사용하는 것이 좋습니다.
+-   만약 *훈련 처리량이 특정 배치 크기까지 증가하다가 멈춘다면, 하드웨어가 더 큰 배치 크기를 지원하더라도 그 최대 배치 크기까지만 사용하는 것이 좋습니다*.
     -   배치 크기를 크게 사용하는 이점은 훈련 처리량이 증가할 때만 얻을 수 있습니다. 그렇지 않다면 병목을 해결하거나 더 작은 배치 크기를 사용하는 것이 좋습니다.
     -   **Gradient accumulation** 하드웨어가 지원하는 것보다 더 큰 배치 크기를 시뮬레이션하는 것이지만, 실제 처리량 향상에는 도움이 되지 않으므로, 일반적으로 사용하지 않는 것이 좋습니다.
 -   모델이나 최적화 알고리즘이 변경될 때마다 이 과정을 다시 반복해야 할 수도 있습니다(예: 다른 모델 구조에서는 더 큰 배치 크기가 가능할 수 있음).
@@ -181,15 +180,15 @@
 
 <p align="center">**학습 시간 = (단계당 시간) x (전체 단계 수)**</p>
 
-   - 일반적으로 모든 가능한 배치 크기에 대해 단계당 시간은 거의 일정하다고 간주할 수 있습니다. 이는 병렬 연산에서의 오버헤드가 없고, 모든 학습 병목 현상이 이미 진단 및 해결된 경우에 해당합니다(학습 병목 현상의 진단 방법은 이전 섹션을 참조하세요). 하지만 실제로는 배치 크기가 증가하면 어느 정도 오버헤드가 발생하는 경우가 많습니다.
+   - 일반적으로 모든 가능한 배치 크기에 대해 단계당 시간은 거의 일정하다고 간주할 수 있습니다. 이는 병렬 연산에서의 오버헤드가 없고, 모든 학습 병목 현상이 이미 진단 및 해결된 경우에 해당합니다(학습 병목 현상의 진단 방법은 이전 섹션을 참조하세요). 하지만 실제로는 *배치 크기가 증가하면 어느 정도 오버헤드가 발생하는 경우가 많습니다.*
    -  (see the
     [previous section](#determining-the-feasible-batch-sizes-and-estimating-training-throughput)
-   - 배치 크기가 커질수록 고정된 성능 목표에 도달하기 위해 필요한 전체 단계 수는 일반적으로 감소합니다(배치 크기가 변경될 때 관련 하이퍼파라미터가 재조정되는 경우; Shallue et al. 2018 참고). [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)).
+   - **배치 크기가 커질수록 고정된 성능 목표에 도달하기 위해 필요한 전체 단계 수는 일반적으로 감소**합니다(배치 크기가 변경될 때 관련 하이퍼파라미터가 재조정되는 경우; Shallue et al. 2018 참고). [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)).
       - 예를 들어, 배치 크기를 두 배로 늘리면 전체 단계 수가 절반으로 줄어들 수 있습니다. 이를 **완벽한 스케일링(perfect scaling)** 이라고 합니다.
       - 완벽한 스케일링은 특정 임계 배치 크기까지 적용되며, 이 임계 크기를 넘으면 증가하는 배치 크기에도 불구하고 얻을 수 있는 이점이 점차 줄어듭니다.
       - 결국, 배치 크기를 계속 늘려도 학습 단계 수가 더 이상 줄어들지 않게 됩니다(단, 학습 단계 수가 증가하지는 않습니다).
-따라서 학습 시간을 최소화하는 배치 크기는 학습 단계 수를 줄이는 효과가 있는 가장 큰 배치 크기입니다.
-이 배치 크기는 데이터셋, 모델, 그리고 최적화 알고리즘에 따라 다르며, 이 배치 크기를 계산하는 방법은 아직 명확하지 않아, 새로운 문제마다 실험을 통해 찾아야 합니다. 🤖
+따라서 ***학습 시간을 최소화하는 배치 크기는 학습 단계 수를 줄이는 효과가 있는 가장 큰 배치 크기***입니다.
+*이 배치 크기는 데이터셋, 모델, 그리고 최적화 알고리즘에 따라 다르며, 이 배치 크기를 계산하는 방법은 아직 명확하지 않아, 새로운 문제마다 실험을 통해 찾아야 합니다.* 🤖
       - 배치 크기를 비교할 때는 예제 예산(example budget)/에포크 예산([epoch](https://developers.google.com/machine-learning/glossary#epoch) 즉, 고정된 학습 데이터 수로 실험을 진행하는 방식)과 단계 예산(step budget, 고정된 학습 단계 수로 실험을 진행하는 방식)의 차이를 주의해야 합니다.
          - 에포크 예산으로 배치 크기를 비교하면, 큰 배치 크기가 학습 단계 수를 줄임으로써 유의미한 속도 향상을 제공할 수 있는 경우에도 완벽한 스케일링 영역만 탐색하게 됩니다.
       - 종종, 사용 가능한 하드웨어가 지원하는 가장 큰 배치 크기는 임계 배치 크기보다 작습니다. 따라서, 실험을 진행하지 않고 적용할 수 있는 좋은 규칙은 가능한 가장 큰 배치 크기를 사용하는 것입니다.
@@ -207,7 +206,7 @@
 -   배치 크기를 증가시키는 데 관련된 두 가지 유형의 리소스 비용이 있습니다:
     1.  초기 비용: 새로운 하드웨어 구매 하거나 multi-GPU / multi-TPU 학습을 구현하기 위한 학습 파이프라인 재작성 할때 발생하는 비용.
     2.  사용 비용: 팀의 리소스 예산에 대한 청구, 클라우드 제공업체로부터의 청구, 전기/유지보수 비용 등.
--   배치 크기를 늘리는 데 상당한 초기 비용이 든다면, 프로젝트가 성숙해지고 비용-이익 트레이드오프를 더 쉽게 평가할 수 있을 때까지 배치 크기 증가를 미루는 것이 좋을 수 있습니다. multi-host 병렬 학습 프로그램을 구현하면 버그와 미묘한 문제가 발생할 수 있으므로, 처음에는 더 간단한 파이프라인으로 시작하는 것이 좋습니다. (반면, 학습 시간의 큰 단축은 많은 튜닝 실험이 필요한 초기 과정에서 매우 유익할 수 있습니다).
+-   배치 크기를 늘리는 데 상당한 초기 비용이 든다면, 프로젝트가 성숙해지고 비용-이익 트레이드오프를 더 쉽게 평가할 수 있을 때까지 배치 크기 증가를 미루는 것이 좋을 수 있습니다. multi-host ***병렬 학습 프로그램을 구현하면 버그와 미묘한 문제가 발생할 수 있으므로, 처음에는 더 간단한 파이프라인으로 시작하는 것이 좋습니다.*** (*반면, 학습 시간의 큰 단축은 많은 튜닝 실험이 필요한 초기 과정에서 매우 유익할 수 있습니다*).
     [bugs](#considerations-for-multi-host-pipelines) and
     [subtle issues](#batch-normalization-implementation-details) 
 -   우리는 총 사용 비용(여러 종류의 비용을 포함)을 "리소스 소비(resource consumption)"라고 부릅니다. 리소스 소비는 다음과 같이 나눌 수 있습니다:
@@ -223,22 +222,26 @@
     -   
 </details>
 
-#### Changing the batch size requires re-tuning most hyperparameters
+#### Changing the batch size requires re-tuning most hyperparameters!!!!
 
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
-배치 크기를 변경하면 대부분의 하이퍼 파라미터를 다시 조정해야합니다.
+***배치 크기를 변경하면 대부분의 하이퍼 파라미터를 다시 조정해야합니다.***
 
--   The optimal values of most hyperparameters are sensitive to the batch size.
-    Therefore, changing the batch size typically requires starting the tuning
-    process all over again.
--   The hyperparameters that interact most strongly with the batch size, and therefore are most important to tune separately for each batch size, are the optimizer hyperparameters (e.g. learning rate, momentum) and the regularization hyperparameters.
--   Keep this in mind when choosing the batch size at the start of a project. If
-    you need to switch to a different batch size later on, it might be
-    difficult, time consuming, and expensive to re-tune everything for the new
-    batch size.
+-   **대부분의 하이퍼파라미터의 최적값은 배치 사이즈에 민감**합니다. 따라서 *배치 크기를 변경*하면 일반적으로 ***튜닝 과정을 처음부터 다시 시작해야 합니다***.
+-   **배치 크기와 가장 밀접한 관계가 있는 하이퍼파라미터**는 다음과 같습니다:
+
+       - **옵티마이저** 하이퍼파라미터 (예: Learning rate, Momentum)
+       - **정규화** 하이퍼파라미터 (*regularization* hyperparameter)
+         
+이 하이퍼파라미터들은 각 배치 크기마다 별도로 튜닝하는 것이 매우 중요합니다.
+
+-   프로젝트 시작 시 배치 크기를 선택할 때는 이 점을 꼭 기억하세요. 나중에 **배치 크기를 바꿔야 한다면**:
+
+    - **모든 것을 새 배치 사이즈에 맞춰 다시 튜닝해야 함!!**.
+    - 이 과정은 **어렵고, 시간이 많이 걸리며, 비용**도 많이 들 수 있습니다.
 
 </details>
 
@@ -248,85 +251,55 @@
 
 <br>
 
+**배치 정규화와 배치 크기의 관계** 
 
--   Batch norm is complicated and, in general, should use a different batch size
-    than the gradient computation to compute statistics. See the
-    [batch norm section](#batch-normalization-implementation-details) for a
-    detailed discussion.
+-   배치 정규화는 복잡합니다. 일반적으로 통계를 계산할 때는 그래디언트 계산에 사용되는 배치 크기와 다른 배치 크기를 사용해야 합니다. 자세한 사항은 다음 참조 [batch norm section](#batch-normalization-implementation-details)
 
 </details>
 
 ### Choosing the initial configuration
 
--   Before beginning hyperparameter tuning we must determine the starting point.
-    This includes specifying (1) the model configuration (e.g. number of
-    layers), (2) the optimizer hyperparameters (e.g. learning rate), and (3) the
-    number of training steps.
--   Determining this initial configuration will require some manually configured
-    training runs and trial-and-error.
--   Our guiding principle is to find a simple, relatively fast, relatively
-    low-resource-consumption configuration that obtains a "reasonable" result.
-    -   "Simple" means avoiding bells and whistles wherever possible; these can
-        always be added later. Even if bells and whistles prove helpful down the
-        road, adding them in the initial configuration risks wasting time tuning
-        unhelpful features and/or baking in unnecessary complications.
-        -   For example, start with a constant learning rate before adding fancy
-            decay schedules.
-    -   Choosing an initial configuration that is fast and consumes minimal
-        resources will make hyperparameter tuning much more efficient.
-        -   For example, start with a smaller model.
-    -   "Reasonable" performance depends on the problem, but at minimum means
-        that the trained model performs much better than random chance on the
-        validation set (although it might be bad enough to not be worth
-        deploying).
--   Choosing the number of training steps involves balancing the following
-    tension:
-    -   On the one hand, training for more steps can improve performance and
-        makes hyperparameter tuning easier (see
+**초기값 설정하기**
+
+-   하이퍼파라미터 튜닝 시작 전 결정할 사항은 다음과 같음: **1) 모델 구성** (예: 레이어 수)  **2)최적화 도구(optimizer) 하이퍼파라미터** (예: 학습률)  **3) epoch**
+-   이러한 **초기 설정은 직접 수동으로 구성하여 실행해보면서 시행착오를 거쳐야 함.**
+-   **기본 원칙**은 : ***간단하고, 비교적 빠르며, 자원 소비가 적으면서 "합리적인" 결과를 얻는 설정을 찾는것임***
+    -   "Simple" 간단함의 의미는 불필요한 기능은 피하는 것임(나중에 추가 가능함). 초기에 복잡한 기능 추가시 시간 장비의 위험이 있음. 
+        -   예를 들어 복잡한 decay schedule을 넣는 대신 constant learning rate를 사용.
+    -   빠르고 최소한의 자원을 사용하는 초기 설정 사용. 
+        -   예를들어, 작은 모델로 시작하기.
+    -   "합리적인" 성능이란 문제에 따라 다르지만 최소한 검증 세트에서 무작위 추측보다 훨씬 나은 성능. 
+-   학습 단계(epoch) 수 선택 시 고려사항:
+    -   더 많은 단계로 학습시 성능 향상이 가능하며 하이퍼파라미터 튜닝이 용이함 (see
         [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)).
-    -   On the other hand, training for fewer steps means that each training run
-        is faster and uses fewer resources, boosting tuning efficiency by
-        reducing the time between cycles and allowing more experiments to be run
-        in parallel. Moreover, if an unnecessarily large step budget is chosen
-        initially, it might be hard to change it down the road, e.g. once the
-        learning rate schedule is tuned for that number of steps.
+    -   반면에 적은 단계로 학습시 각 실행이 더 빠르고 자원을 적게 사용함. 튜닝 주기 사이 시간이 단축되며 더 많은 실험을 병렬로 실행 가능함.
+    -   주의 사항으로. 처음에 너무 많은 단계를 선택시 나중에 줄이기 어려울 수 있음.  (Learning rate가 튜닝이 된 경우)
 
 ## A scientific approach to improving model performance
 
-For the purposes of this document, the ultimate goal of machine learning
-development is to maximize the utility of the deployed model. Even though many
-aspects of the development process differ between applications (e.g. length of
-time, available computing resources, type of model), we can typically use the
-same basic steps and principles on any problem.
+**모델 성능 향상을 위한 과학적 접근법**
 
-Our guidance below makes the following assumptions:
+본 문서의 목적상, 머신러닝 개발의 궁극적인 목표는 배포된 모델의 유용성을 극대화하는 것입니다. 개발 과정의 많은 측면이 응용 분야마다 다르지만(예: 소요 시간, 가용 컴퓨팅 자원, 모델 유형), 대부분의 문제에 동일한 기본 단계와 원칙을 적용할 수 있습니다.
 
--   There is already a fully-running training pipeline along with a
-    configuration that obtains a reasonable result.
--   There are enough computational resources available to conduct meaningful
-    tuning experiments and run at least several training jobs in parallel.
+ 이 문서의 지침은 다음과 같은 가정을 바탕으로 합니다:
+
+-   이미 완전히 작동하는 학습 파이프라인이 있으며, 합리적인 결과를 얻을 수 있는 설정이 마련되어 있습니다.
+-   의미 있는 튜닝 실험을 수행하고 최소한 여러 개의 학습 작업을 병렬로 실행할 수 있는 충분한 컴퓨팅 자원이 있습니다.
 
 ### The incremental tuning strategy
 
-***Summary:*** *Start with a simple configuration and incrementally make
-improvements while building up insight into the problem. Make sure that any
-improvement is based on strong evidence to avoid adding unnecessary complexity.*
+**점진적인 튜닝 전략**
 
--   Our ultimate goal is to find a configuration that maximizes the performance
-    of our model.
-    -   In some cases, our goal will be to maximize how much we can improve the
-        model by a fixed deadline (e.g. submitting to a competition).
-    -   In other cases, we want to keep improving the model indefinitely (e.g.
-        continually improving a model used in production).
--   In principle, we could maximize performance by using an algorithm to
-    automatically search the entire space of possible configurations, but this
-    is not a practical option.
-    -   The space of possible configurations is extremely large and there are
-        not yet any algorithms sophisticated enough to efficiently search this
-        space without human guidance.
--   Most automated search algorithms rely on a hand-designed *search space* that
-    defines the set of configurations to search in, and these search spaces can
-    matter quite a bit.
+***Summary:*** *간단한 설정으로 시작하여 문제에 대한 이해를 쌓으면서 점진적으로 개선합니다. 불필요한 복잡성을 피하기 위해 모든 개선이 강력한 증거를 기반으로 하는지 확인합니다.*
+
+-   궁극적인 목표: 모델의 성능을 최대화하는 설정 찾기이지만 상황에 따라 다를 수 있음:
+        - 정해진 기한까지 모델 개선 최대화 (예: 대회 제출)
+        - 무기한 모델 지속 개선 (예: 프로덕션 모델 계속 개선)
+-   이론적으로, 모든 가능한 설정을 자동으로 탐색하는 알고리즘을 사용할수 있으나 현실적으로 불가능함.
+    -   가능한 설정 공간이 매우 광범위
+    -   인간의 지도 없이 효율적으로 탐색할 만큼 정교한 알고리즘의 부재
+-   대부분의 자동 탐색 알고리즘은 수동으로 설계된 탐색공간(Search space! 중요!)에 의존.
+-   가장 효과적인 성능 최대화 방법은 1) 간단한 설정으로 시작하여 2) 문제에 대한 이해를 쌓으며 기능을 추가하면서 개선하는 것임 3) 각 튜닝 라운드에서 자동화된 탐색 알고리즘을 사용하고 4) 이해도 증가에 따라 탐색공간을 지속적으로 업데이터 하는것.
 -   The most effective way to maximize performance is to start with a simple
     configuration and incrementally add features and make improvements while
     building up insight into the problem.
