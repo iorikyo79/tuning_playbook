@@ -11,42 +11,42 @@
 
 ## Table of Contents
 
--   [Who is this document for?](#who-is-this-document-for)
--   [Why a tuning playbook?](#why-a-tuning-playbook)
--   [Guide for starting a new project](#guide-for-starting-a-new-project)
-    -   [Choosing the model architecture](#choosing-a-model-architecture)
-    -   [Choosing the optimizer](#choosing-the-optimizer)
-    -   [Choosing the batch size](#choosing-the-batch-size)
-    -   [Choosing the initial configuration](#choosing-the-initial-configuration)
--   [A scientific approach to improving model performance](#a-scientific-approach-to-improving-model-performance)
-    -   [The incremental tuning strategy](#the-incremental-tuning-strategy)
-    -   [Exploration vs exploitation](#exploration-vs-exploitation)
-    -   [Choosing the goal for the next round of experiments](#choosing-the-goal-for-the-next-round-of-experiments)
-    -   [Designing the next round of experiments](#Designing-the-next-round-of-experiments)
-    -   [Determining whether to adopt a training pipeline change or
+-   [1. Who is this document for?](#who-is-this-document-for)
+-   [2. Why a tuning playbook?](#why-a-tuning-playbook)
+-   [3. Guide for starting a new project](#guide-for-starting-a-new-project)
+    -   [3.1 Choosing the model architecture](#choosing-a-model-architecture)
+    -   [3.2 Choosing the optimizer](#choosing-the-optimizer)
+    -   [3.3 Choosing the batch size](#choosing-the-batch-size)
+    -   [3.4 Choosing the initial configuration](#choosing-the-initial-configuration)
+-   [4. A scientific approach to improving model performance](#a-scientific-approach-to-improving-model-performance)
+    -   [4.1 The incremental tuning strategy](#the-incremental-tuning-strategy)
+    -   [4.2 Exploration vs exploitation](#exploration-vs-exploitation)
+    -   [4.3 Choosing the goal for the next round of experiments](#choosing-the-goal-for-the-next-round-of-experiments)
+    -   [4.4 Designing the next round of experiments](#Designing-the-next-round-of-experiments)
+    -   [4.5 Determining whether to adopt a training pipeline change or
         hyperparameter
         configuration](#Determining-whether-to-adopt-a-training-pipeline-change-or-hyperparameter-configuration)
-    -   [After exploration concludes](#After-exploration-concludes)
--   [Determining the number of steps for each training run](#Determining-the-number-of-steps-for-each-training-run)
-    -   [Deciding how long to train when training is not compute-bound](#Deciding-how-long-to-train-when-training-is-not-compute-bound)
-    -   [Deciding how long to train when training is compute-bound](#Deciding-how-long-to-train-when-training-is-compute-bound)
--   [Additional guidance for the training pipeline](#Additional-guidance-for-the-training-pipeline)
-    -   [Optimizing the input pipeline](#Optimizing-the-input-pipeline)
-    -   [Evaluating model performance](Evaluating-model-performance)
-    -   [Saving checkpoints and retrospectively selecting the best checkpoint](#Saving-checkpoints-and-retrospectively-selecting-the-best-checkpoint)
-    -   [Setting up experiment tracking](#Setting-up-experiment-tracking)
-    -   [Batch normalization implementation details](#Batch-normalization-implementation-details)
-    -   [Considerations for multi-host pipelines](#Considerations-for-multi-host-pipelines)
--   [FAQs](#faqs)
--   [Acknowledgments](#acknowledgments)
--   [Citing](#citing)
--   [Contributing](#contributing)
+    -   [4.6 After exploration concludes](#After-exploration-concludes)
+-   [5. Determining the number of steps for each training run](#Determining-the-number-of-steps-for-each-training-run)
+    -   [5.1 Deciding how long to train when training is not compute-bound](#Deciding-how-long-to-train-when-training-is-not-compute-bound)
+    -   [5.2 Deciding how long to train when training is compute-bound](#Deciding-how-long-to-train-when-training-is-compute-bound)
+-   [6. [Additional guidance for the training pipeline](#Additional-guidance-for-the-training-pipeline)
+    -   [6.1 Optimizing the input pipeline](#Optimizing-the-input-pipeline)
+    -   [6.2 Evaluating model performance](Evaluating-model-performance)
+    -   [6.3 Saving checkpoints and retrospectively selecting the best checkpoint](#Saving-checkpoints-and-retrospectively-selecting-the-best-checkpoint)
+    -   [6.4 Setting up experiment tracking](#Setting-up-experiment-tracking)
+    -   [6.5 Batch normalization implementation details](#Batch-normalization-implementation-details)
+    -   [6.6 Considerations for multi-host pipelines](#Considerations-for-multi-host-pipelines)
+-   [7. FAQs](#faqs)
+-   [8. Acknowledgments](#acknowledgments)
+-   [9. Citing](#citing)
+-   [10. Contributing](#contributing)
 
-## Who is this document for?
+## 1. Who is this document for?
 
 이 문서는 딥 러닝 **모델의 성능 극대화**에 관심 있는 엔지니어와 연구자들을 위한 것입니다. 머신 러닝과 딥 러닝에 대한 기본 지식을 갖춘 개인과 팀 모두에게 유용할 것입니다.
 
-## Why a tuning playbook?
+## 2. Why a tuning playbook?
 
 주요 내용:
 
@@ -88,7 +88,7 @@
 - 지속적으로 업데이트되는 '살아있는 문서'
 - 커뮤니티의 피드백과 기여 환영
 
-## Guide for starting a new project
+## 3. Guide for starting a new project
 
 프로젝트 초기에 내리는 많은 결정들은 상황 변화가 있을 때만 간헐적으로 재검토하면 됩니다. 아래의 가이드는 다음을 전제로 합니다:
 
@@ -97,7 +97,7 @@
 - **적절한 평가 지표가 선택되고 구현된 상태**. 이 지표들은 실제 배포 환경에서 측정될 것과 최대한 유사해야 함
 
 
-### Choosing the model architecture
+### 3.1 Choosing the model architecture
 
 ***Summary:*** ***새 프로젝트를 시작할 때는 이미 작동하는 모델을 재사용하려 노력하세요.***
 
@@ -111,7 +111,7 @@
 -  가능하다면 현재 다루고자 하는 문제와 최대한 유사한 문제를 다룬 논문을 찾아 그 모델을 출발점으로 재현해 보세요.
 
 
-### Choosing the optimizer
+### 3.2 Choosing the optimizer
 
 ***Summary:*** ***문제 유형에 가장 적합한(잘 알려진) 최적화 알고리즘부터 시작하세요.***
 
@@ -132,7 +132,7 @@
         -   See
             [Adam's hyperparameters 튜닝 방법 자료](#how-should-adams-hyperparameters-be-tuned)
 
-### Choosing the batch size
+### 3.3 Choosing the batch size
 
 ***Summary:*** ***배치 크기는 훈련 속도를 좌우**하며, **검증 세트 성능을 직접적으로 조정하기 위한 수단으로 사용해서는 안 됩니다.** **이상적인 배치 크기**는 사용 **가능한 하드웨어가 지원하는 최대 크기일 때가 많습니다**.*
 
@@ -257,7 +257,7 @@
 
 </details>
 
-### Choosing the initial configuration
+### 3.4 Choosing the initial configuration
 
 **초기값 설정하기**
 
@@ -276,7 +276,7 @@
     -   주의 사항으로. 처음에 너무 많은 단계를 선택시 나중에 줄이기 어려울 수 있음.  (Learning rate가 튜닝이 된 경우)
 
 
-## A scientific approach to improving model performance
+## 4. A scientific approach to improving model performance
 
 **모델 성능 향상을 위한 과학적 접근법**
 
@@ -287,7 +287,7 @@
 -   이미 완전히 작동하는 학습 파이프라인이 있으며, 합리적인 결과를 얻을 수 있는 설정이 마련되어 있습니다.
 -   의미 있는 튜닝 실험을 수행하고 최소한 여러 개의 학습 작업을 병렬로 실행할 수 있는 충분한 컴퓨팅 자원이 있습니다.
 
-### The incremental tuning strategy
+### 4.1 The incremental tuning strategy
 
 **점진적인 튜닝 전략**
 
@@ -314,7 +314,7 @@
 
 이 문서의 나머지 부분에서는 이 전략을 더욱 자세히 다룰 것임.
 
-### Exploration vs exploitation
+### 4.2 Exploration vs exploitation
 
 **탐색 vs 활용**
 
@@ -336,7 +336,7 @@
     - 더이상 문제의 구조나 하이퍼파라미터의 관계를 파악하지 않고 지금까지 얻은 지식을 바탕으로 성능을 올리는데만 집중하는 단계임..
 
 
-### Choosing the goal for the next round of experiments
+### 4.3 Choosing the goal for the next round of experiments
 
 **다음 실험 목표 선택**
 
@@ -349,7 +349,7 @@
     -   Validation error의 탐욕적 최소화 (현재 알고 있는 최선의 방법으로 성능 극대화)
 
 
-### Designing the next round of experiments
+### 4.4 Designing the next round of experiments
 
 **다음 실험 라운드 설계하기**
 
@@ -464,7 +464,7 @@
 
 </details>
 
-### Extracting insight from experimental results
+#### Extracting insight from experimental results
 
 **실험 결과의 깊이 있는 분석을 통해 더 나은 통찰과 신뢰성 있는 결론을 도출하는 방법**
 
@@ -700,7 +700,7 @@ trained on ImageNet.">
 
 </details>
 
-### Determining whether to adopt a training pipeline change or hyperparameter configuration
+### 4.5 Determining whether to adopt a training pipeline change or hyperparameter configuration
 
 ***Summary:*** *When deciding whether to make a change to our model or training
 procedure or adopt a new hyperparameter configuration going forward, we need to
@@ -754,7 +754,7 @@ be aware of the different sources of variation in our results.*
     -   However, we should only adopt changes that produce improvements that
         outweigh any complexity they add.
 
-### After exploration concludes
+### 4.6 After exploration concludes
 
 ***Summary:*** *Bayesian optimization tools are a compelling option once we’re
 done exploring for good search spaces and have decided what hyperparameters even
@@ -792,7 +792,7 @@ should be tuned at all.*
         launches with this specific workload (e.g. a one-time Kaggle
         competition).
 
-## Determining the number of steps for each training run
+## 5. Determining the number of steps for each training run
 
 -   There are two types of workloads: those that are compute-bound and those
     that are not.
@@ -829,7 +829,7 @@ should be tuned at all.*
     -   Adding data augmentation
     -   Adding some types of regularization (e.g. dropout)
 
-### Deciding how long to train when training is *not* compute-bound
+### 5.1 Deciding how long to train when training is *not* compute-bound
 
 -   Our main goal is to ensure we are training long enough for the model to
     reach the best possible result, while avoiding being overly wasteful in the
@@ -898,7 +898,7 @@ should be tuned at all.*
 
 </details>
 
-### Deciding how long to train when training is compute-bound
+### 5.2 Deciding how long to train when training is compute-bound
 
 -   In some cases, training loss keeps improving indefinitely and our patience
     and computational resources become the limiting factors.
@@ -1011,7 +1011,7 @@ should be tuned at all.*
 
 </details>
 
-## Additional guidance for the training pipeline
+## 6. Additional guidance for the training pipeline
 
 ### Optimizing the input pipeline
 
@@ -1043,7 +1043,7 @@ task-dependent; use a profiler and look out for common issues.*
         the input pipeline. For example, by using the
         [tf.data service](https://www.tensorflow.org/api_docs/python/tf/data/experimental/service).
 
-### Evaluating model performance
+### 6.1 Evaluating model performance
 
 ***Summary:*** *Run evaluation at larger batch sizes than training. Run
 evaluations at regular step intervals, not regular time intervals.*
@@ -1151,7 +1151,7 @@ evaluations at regular step intervals, not regular time intervals.*
 
 </details>
 
-### Saving checkpoints and retrospectively selecting the best checkpoint
+### 6.2 Saving checkpoints and retrospectively selecting the best checkpoint
 
 ***Summary:*** *Run training for a fixed number of steps and retrospectively
 choose the best checkpoint from the run.*
@@ -1172,7 +1172,7 @@ choose the best checkpoint from the run.*
     pre-specifying a trial budget and are preserving the N best checkpoints seen
     so far.
 
-### Setting up experiment tracking
+### 6.3 Setting up experiment tracking
 
 ***Summary:*** *When tracking different experiments, make sure to note a number
 of essentials like the best performance of a checkpoint in the study, and a
@@ -1192,7 +1192,7 @@ short description of the study.*
     and is convenient for the people doing it. Untracked experiments might as
     well not exist.
 
-### Batch normalization implementation details
+### 6.4 Batch normalization implementation details
 
 ***Summary:*** *Nowadays batch norm can often be replaced with LayerNorm, but in
 cases where it cannot, there are tricky details when changing the batch size or
@@ -1216,7 +1216,7 @@ number of hosts.*
     implementations of batch norm do not synchronize these EMAs and only save
     the EMA from the first device.
 
-### Considerations for multi-host pipelines
+### 6.5 Considerations for multi-host pipelines
 
 ***Summary:*** *for logging, evals, RNGs, checkpointing, and data sharding,
 multi-host training can make it very easy to introduce bugs!*
@@ -1230,9 +1230,9 @@ multi-host training can make it very easy to introduce bugs!*
 -   Sharding data files across hosts is usually recommended for improved
     performance.
 
-## FAQs
+## 7. FAQs
 
-### What is the best learning rate decay schedule family?
+### 7.1 What is the best learning rate decay schedule family?
 
 <details><summary><em>[Click to expand]</em></summary>
 
@@ -1248,7 +1248,7 @@ multi-host training can make it very easy to introduce bugs!*
 
 </details>
 
-### Which learning rate decay should I use as a default?
+### 7.2 Which learning rate decay should I use as a default?
 
 <details><summary><em>[Click to expand]</em></summary>
 <br>
@@ -1258,7 +1258,7 @@ multi-host training can make it very easy to introduce bugs!*
 
 </details>
 
-### Why do some papers have complicated learning rate schedules?
+### 7.3 Why do some papers have complicated learning rate schedules?
 
 <details><summary><em>[Click to expand]</em></summary>
 <br>
@@ -1288,7 +1288,7 @@ multi-host training can make it very easy to introduce bugs!*
 
 </details>
 
-### How should Adam’s hyperparameters be tuned?
+### 7.4 How should Adam’s hyperparameters be tuned?
 
 <details><summary><em>[Click to expand]</em></summary>
 <br>
@@ -1306,7 +1306,7 @@ multi-host training can make it very easy to introduce bugs!*
 
 </details>
 
-### Why use quasi-random search instead of more sophisticated black box optimization algorithms during the exploration phase of tuning?
+### 7.5 Why use quasi-random search instead of more sophisticated black box optimization algorithms during the exploration phase of tuning?
 
 <details><summary><em>[Click to expand]</em></summary>
 
@@ -1395,7 +1395,7 @@ multi-host training can make it very easy to introduce bugs!*
 
 </details>
 
-### Where can I find an implementation of quasi-random search?
+### 7.6 Where can I find an implementation of quasi-random search?
 
 <details><summary><em>[Click to expand]</em></summary>
 <br>
@@ -1416,7 +1416,7 @@ multi-host training can make it very easy to introduce bugs!*
 
 </details>
 
-### How many trials are needed to get good results with quasi-random search?
+### 7.7 How many trials are needed to get good results with quasi-random search?
 
 <details><summary><em>[Click to expand]</em></summary>
 <br>
@@ -1443,7 +1443,7 @@ Box plots of the best performances for each trial budget are plotted above.
 
 </details>
 
-### How can optimization failures be debugged and mitigated?
+### 7.8 How can optimization failures be debugged and mitigated?
 
 <details><summary><em>[Click to expand]</em></summary>
 <br>
@@ -1631,7 +1631,7 @@ scale).">
 
 </details>
 
-### Why do you call the learning rate and other optimization parameters hyperparameters? They are not parameters of any prior distribution.
+### 7.9 Why do you call the learning rate and other optimization parameters hyperparameters? They are not parameters of any prior distribution.
 
 <details><summary><em>[Click to expand]</em></summary>
 <br>
@@ -1658,7 +1658,7 @@ scale).">
 
 </details>
 
-### Why shouldn't the batch size be tuned to directly improve validation set performance?
+### 7.10 Why shouldn't the batch size be tuned to directly improve validation set performance?
 
 <details><summary><em>[Click to expand]</em></summary>
 <br>
@@ -1672,7 +1672,7 @@ scale).">
 
 </details>
 
-### What are the update rules for all the popular optimization algorithms?
+### 7.11 What are the update rules for all the popular optimization algorithms?
 
 <details><summary><em>[Click to expand]</em></summary>
 
@@ -1734,7 +1734,7 @@ $$\theta_{t+1} = \theta_{t} - \alpha_t \frac{\beta_1 m_{t+1} + (1 - \beta_1) \na
 
 </details>
 
-## Acknowledgments
+## 8. Acknowledgments
 
 -   We owe a debt of gratitude to Max Bileschi, Roy Frostig, Zelda Mariet, Stan
     Bileschi, Mohammad Norouzi, Chris DuBois and Charles Sutton for reading the
@@ -1744,7 +1744,7 @@ $$\theta_{t+1} = \theta_{t} - \alpha_t \frac{\beta_1 m_{t+1} + (1 - \beta_1) \na
 -   We would like to thank Will Chen for invaluable advice on the presentation of the document.
 -   We would also like to thank Rohan Anil for useful discussions.
 
-## Citing
+## 9. Citing
 
 ```
 @misc{tuningplaybookgithub,
