@@ -353,130 +353,62 @@
 
 **다음 실험 라운드 설계하기**
 
-***Summary:*** *실험 목표에 따라 과학적 파라미터, 방해 파라미터, 고정 파라미터를 식별한다. 방해 파라미터를 최적화하면서 과학적 파라미터의 다양한 값을 비교하는 일련의 연구를 구성한다. 자원 비용과 과학적 가치의 균형을 맞추기 위해 방해 파라미터의 탐색 공간을 선택.*
+***Summary:*** *실험 목표에 따라 과학적 파라미터, 성가신 파라미터, 고정 파라미터를 식별한다. 성가신 파라미터를 최적화하면서 과학적 파라미터의 다양한 값을 비교하는 일련의 연구를 구성한다. 자원 비용과 과학적 가치의 균형을 맞추기 위해 성가신 파라미터의 탐색 공간을 선택.*
 
 #### Identifying scientific, nuisance, and fixed hyperparameters
 
-**과학적, 방해, 고정 하이퍼파라미터 식별하기**
+**과학적, 성가신, 고정 하이퍼파라미터 식별하기**
 
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
--   주어진 목표에 대해 모든 하이퍼파라미터는 **과학적 하이퍼파라미너, 방해 하이퍼파라미터, 고정 하이퍼파라미터**중 하나가 됨.
+-   주어진 목표에 대해 모든 하이퍼파라미터는 **과학적 하이퍼파라미너, 성가신 하이퍼파라미터, 고정 하이퍼파라미터**중 하나가 됨.
     -   ***과학적 파라미터 Scientific hyperparameters*** : 모델 성능에 미치는 영향을 측정하고자 하는 파라미터.
-    -   ***방해 파라미터 Nuisance hyperparameters***: 과학적 파라미터의 다양한 값을 공정하게 비교하기 위해 최적화해야하는 파라미터. 통계적 개념인 방해 변화와 유사함.
+    -   ***성가신 파라미터 Nuisance hyperparameters***: 과학적 파라미터의 다양한 값을 공정하게 비교하기 위해 최적화해야하는 파라미터. 통계적 개념인 성가신 변화와 유사함.
         [nuisance parameters](https://en.wikipedia.org/wiki/Nuisance_parameter).
     -   ***고정 파라미터 Fixed hyperparameters***: 현재 실험 라운드에서 값이 고정될 하이퍼파라미터. 이는 과학적 파라미터의 다양한 값을 비교할 때 변경할 필요가 없거나 변경을 원하지 않는 파라미터임.
         -   일부 변수를 고정하면 실험은 단순해지지만, 그 결과의 적용 범위도 제한됨. 그래서 결과를 해석할 때 이런 제한 사항을 항상 염두해야 함. (즉, 고정 파라미터는 일종의 전제 조건이 될 수 있음).
--   Whether a particular hyperparameter is a scientific hyperparameter, nuisance
-    hyperparameter, or fixed hyperparameter is not inherent to that
-    hyperparameter, but changes depending on the experimental goal.
-    -   For example, the choice of activation function could be a scientific
-        hyperparameter (is ReLU or tanh a better choice for our problem?), a
-        nuisance hyperparameter (is the best 5-layer model better than the best
-        6-layer model when we allow several different possible activation
-        functions?), or a fixed hyperparameter (for ReLU nets, does adding batch
-        normalization in a particular position help?).
--   When designing a new round of experiments, we first identify the scientific
-    hyperparameters for our experimental goal.
-    -   At this stage, we consider all other hyperparameters to be nuisance
-        hyperparameters.
--   Next, we convert some of the nuisance hyperparameters into fixed
-    hyperparameters.
-    -   With limitless resources, we would leave all non-scientific
-        hyperparameters as nuisance hyperparameters so that the conclusions we
-        draw from our experiments are free from caveats about fixed
-        hyperparameter values.
-    -   However, the more nuisance hyperparameters we attempt to tune, the
-        greater the risk we fail to tune them sufficiently well for each setting
-        of the scientific hyperparameters and end up reaching the wrong
-        conclusions from our experiments.
-        -   As described
+-   하이퍼파라미터의 유동적 역할 :
+    -   하이퍼파라미터가 **과학적, 성가신, 또는 고정** 하이퍼파라미터인지는 **고정된 것이 아님**. 실험 목표에 따라 달라짐.
+    -   예를 들어 *Activation Function을 기준*으로 본다면.
+        1) 과학적 파라미터일 경우 : "이 문제에서 ReLU와 tanh중 어느것이 성능이 잘 나오나?"
+           - 이 경우 ReLU와 tanh의 성능을 직접 비교
+        2) 성가신 파라미터일 경우 : "여러가지 가능한 활성화 함수를 허용할때, 5layer 모델이 6layer모델보다 나은가?"
+           - 주요 관심은 layer 수이지만 각 층수별 활성화 함수도 실험을 해봐야 정확한 결과가 나올 수 있음.
+        3) 고정 파라미터일 경우 : "ReLU 네트워크에서, 특정 위치에 배치 정규화를 추가하는 것이 도움이 되나?
+           - ReLU는 이미 결정되어있고 변경되지 않음. 여기서 주요관심사항은 배치 정규화의 효과임.
+-   ***새로운 라운드의 실험 설계 과정***:
+    -   1) 먼저 실험 목표에 따른 **과학적 하이퍼 파라미터 식별**
+    -   2) **나머지는 일단 성가신 파라미터로 간주**
+    -   3) 그후, **일부 성가신 하이퍼파라미터를 고정 하이퍼파라미터로 전환**
+    -   단, 자원이 무제한 이라면 고정 파라미터 없이 모두 성가신 파라미터로 사용할수 있기는 하지만 불가능.
+    -   성가신 파라미터와 고정 파라미터 사이의 균형:
+        -   고정으로 인한 제약사항보다 성가신 파리미터로 포함시키는 비용이 더 클 때 고정 파라미터로 전환.
+        -   자세한 사항은 다음 링크 참조.
             [below](#striking-a-balance-between-informative-and-affordable-experiments),
-            we could counter this risk by increasing the computational budget,
-            but often our maximum resource budget is less than would be needed
-            to tune over all non-scientific hyperparameters.
-    -   We choose to convert a nuisance hyperparameter into a fixed
-        hyperparameter when, in our judgment, the caveats introduced by fixing
-        it are less burdensome than the cost of including it as a nuisance
-        hyperparameter.
-        -   The more a given nuisance hyperparameter interacts with the
-            scientific hyperparameters, the more damaging it is to fix its
-            value. For example, the best value of the weight decay strength
-            typically depends on the model size, so comparing different model
-            sizes assuming a single specific value of the weight decay would not
-            be very insightful.
--   Although the type we assign to each hyperparameter depends on the
-    experimental goal, we have the following rules of thumb for certain
-    categories of hyperparameters:
-    -   Of the various optimizer hyperparameters (e.g. the learning rate,
-        momentum, learning rate schedule parameters, Adam betas etc.), at least
-        some of them will be nuisance hyperparameters because they tend to
-        interact the most with other changes.
-        -   They are rarely scientific hyperparameters because a goal like "what
-            is the best learning rate for the current pipeline?" doesn't give
-            much insight – the best setting could easily change with the next
-            pipeline change anyway.
-        -   Although we might fix some of them occasionally due to resource
-            constraints or when we have particularly strong evidence that they
-            don't interact with the scientific parameters, we should generally
-            assume that optimizer hyperparameters must be tuned separately to
-            make fair comparisons between different settings of the scientific
-            hyperparameters, and thus shouldn't be fixed.
-            -   Furthermore, we have no *a priori* reason to prefer one
-                optimizer hyperparameter value over another (e.g. they don't
-                usually affect the computational cost of forward passes or
-                gradients in any way).
-    -   In contrast, the *choice* of optimizer is typically a scientific
-        hyperparameter or fixed hyperparameter.
-        -   It is a scientific hyperparameter if our experimental goal involves
-            making fair comparisons between two or more different optimizers
-            (e.g. "determine which optimizer produces the lowest validation
-            error in a given number of steps").
-        -   Alternatively, we might make it a fixed hyperparameter for a variety
-            of reasons, including (1) prior experiments make us believe that the
-            best optimizer for our problem is not sensitive to current
-            scientific hyperparameters; and/or (2) we prefer to compare values
-            of the scientific hyperparameters using this optimizer because its
-            training curves are easier to reason about; and/or (3) we prefer to
-            use this optimizer because it uses less memory than the
-            alternatives.
-    -   Hyperparameters introduced by a regularization technique are typically
-        nuisance hyperparameters, but whether or not we include the
-        regularization technique at all is a scientific or fixed hyperparameter.
-        -   For example, dropout adds code complexity, so when deciding whether
-            to include it we would make "no dropout" vs "dropout" a scientific
-            hyperparameter and the dropout rate a nuisance hyperparameter.
-            -   If we decide to add dropout to our pipeline based on this
-                experiment, then the dropout rate would be a nuisance
-                hyperparameter in future experiments.
-    -   Architectural hyperparameters are often scientific or fixed
-        hyperparameters because architecture changes can affect serving and
-        training costs, latency, and memory requirements.
-        -   For example, the number of layers is typically a scientific or fixed
-            hyperparameter since it tends to have dramatic consequences for
-            training speed and memory usage.
--   In some cases, the sets of nuisance and fixed hyperparameters will depend on
-    the values of the scientific hyperparameters.
-    -   For example, suppose we are trying to determine which optimizer out of
-        Nesterov momentum and Adam results in the lowest validation error. The
-        scientific hyperparameter is the `optimizer`, which takes values
-        `{"Nesterov_momentum", "Adam"}`. The value
-        `optimizer="Nesterov_momentum"` introduces the nuisance/fixed
-        hyperparameters `{learning_rate, momentum}`, but the value
-        `optimizer="Adam"` introduces the nuisance/fixed hyperparameters
-        `{learning_rate, beta1, beta2, epsilon}`.
-    -   Hyperparameters that are only present for certain values of the
-        scientific hyperparameters are called **conditional hyperparameters**.
-    -   We should not assume two conditional hyperparameters are the same just
-        because they have the same name! In the above example, the conditional
-        hyperparameter called `learning_rate` is a *different* hyperparameter
-        for `optimizer="Nesterov_momentum"` versus `optimizer="Adam"`. Its role
-        is similar (although not identical) in the two algorithms, but the range
-        of values that work well in each of the optimizers is typically
-        different by several orders of magnitude.
-
+            주어진 리소스 내에서 가장 효율적인 조합을 찾아야 함
+    -   하이퍼파라미터 유형 선택의 일반적인 규칙(무조건은 아님, 정확한건 실험 목표를 잘 봐야함)
+        -   **최적화 관련 파라미터** : **대부분 성가신 파라미터**로 취급 (e.g. the **learning rate,
+        momentum, learning rate schedule parameters, Adam betas** etc.),
+            - "**최적의 Learning rate**는 얼마인가?"는 ***어떤 인사이트도 찾을수 없기 때문에*** 과학적 파라미터가 아님. 이건 다음 **파이프라인 변경으로 얼마든지 변경될 수 있음**.
+        -   **최적화 알고리즘 선택** : 주로 **과학적** 또는 **고정** 파라미터
+            -   "주어진 에폭 내에서 가장 좋은 성능을 내는 옵티마이저는"? - 과학적
+            -   고정 파라미터로 결정하는 경우 : 
+                - *이전 실험에서 현재 과학적 파라미터와 연관성이 없다고 판단*될때
+                - *특정 옵티마이저의 학습 곡선*이 *추론하는데 더 쉽기 때문에 더 선호*할 경우
+                - *특정 옵티마이저가 GPU를 더 적게* 써서
+        -   **정규화 기법** 관련 파라미터 : 기법 **사용 여부는 과학적/고정 파라미터**, *세부 설정은 성가신 파라미터*
+            - 과학적 파라미터 : "dropout" vs "no dropout" 
+            - 성가신 파라미터 : dropout rate
+            - 만약 여기서 dropout을 사용하는 것으로 결정되면 다음 실험부터 dropout rate는 성가신 파라미터가 됨.
+        -   모델 구조관련 파라미터 : 주로 과학적/고정 파라미터
+        
+-   **조건부 하이퍼파라미터**:
+    -   **과학적 파라미터의 값에 따라 존재 여부가 결정되는 파라미터**
+    -   ex. 최적화 알고리즘에 따라 다른 하이퍼파라미터 세트가 필요함 (adam과 momentum은 서로 다른 세부 설정이있음)
+    -   *같은 이름*의 조건부 파라미터라도 다른 맥락에서는 *다른 역할*을 할수 있음. (adam과 momentum의 learning rate는 다른 값임. 범위도 완전 다르기 때문에 동일하게 취급해서는 안됨)
+    
 </details>
 
 #### Creating a set of studies
@@ -486,59 +418,24 @@
 <br>
 
 
--   Once we have identified the scientific and nuisance hyperparameters, we
-    design a "study" or sequence of studies to make progress towards the
-    experimental goal.
-    -   A study specifies a set of hyperparameter configurations to be run for
-        subsequent analysis. Each configuration is called a "trial".
-    -   Creating a study typically involves choosing the hyperparameters that
-        will vary across trials, choosing what values those hyperparameters can
-        take on (the "search space"), choosing the number of trials, and
-        choosing an automated search algorithm to sample that many trials from
-        the search space. Alternatively, we could create a study by specifying
-        the set of hyperparameter configurations manually.
--   The purpose of the studies is to run the pipeline with different values of
-    the scientific hyperparameters, while at the same time **"optimizing away"**
-    (or "optimizing over") the nuisance hyperparameters so that comparisons
-    between different values of the scientific hyperparameters are as fair as
-    possible.
--   In the simplest case, we would make a separate study for each configuration
-    of the scientific parameters, where each study tunes over the nuisance
-    hyperparameters.
-    -   For example, if our goal is to select the best optimizer out of Nesterov
-        momentum and Adam, we could create one study in which
-        `optimizer="Nesterov_momentum"` and the nuisance hyperparameters are
-        `{learning_rate, momentum}`, and another study in which
-        `optimizer="Adam"` and the nuisance hyperparameters are `{learning_rate,
-        beta1, beta2, epsilon}`. We would compare the two optimizers by
-        selecting the best performing trial from each study.
-    -   We can use any gradient-free optimization algorithm, including methods
-        such as Bayesian optimization or evolutionary algorithms, to optimize
-        over the nuisance hyperparameters, although
-        [we prefer](#why-use-quasi-random-search-instead-of-more-sophisticated-black-box-optimization-algorithms-during-the-exploration-phase-of-tuning)
-        to use quasi-random search in the
-        [exploration phase](#exploration-vs-exploitation) of tuning because of a
-        variety of advantages it has in this setting.
-        [After exploration concludes](#after-exploration-concludes), if
-        state-of-the-art Bayesian optimization software is available, that is
-        our preferred choice.
--   In the more complicated case where we want to compare a large number of
-    values of the scientific hyperparameters and it is impractical to make that
-    many independent studies, we can include the scientific parameters in the
-    same search space as the nuisance hyperparameters and use a search algorithm
-    to sample values of *both* the scientific and nuisance hyperparameters in a
-    single study.
-    -   When taking this approach, conditional hyperparameters can cause
-        problems since it is hard to specify a search space unless the set of
-        nuisance hyperparameters is the same for all values of the scientific
-        hyperparameters.
-    -   In this case,
-        [our preference](#why-use-quasi-random-search-instead-of-more-sophisticated-black-box-optimization-algorithms-during-the-exploration-phase-of-tuning)
-        for using quasi-random search over fancier black-box optimization tools
-        is even stronger, since it ensures that we obtain a relatively uniform
-        sampling of values of the scientific hyperparameters. Regardless of the
-        search algorithm, we need to make sure somehow that it searches the
-        scientific parameters uniformly.
+-   각 하이퍼파라미터를 식별한 후, 실험 목표를 위한 "스터디"를 설계해야함.
+    -  '스터디'는 다음 실험을 위해 실행될 하이퍼파라미터 구성 세트를 지정함. 이러한 각 구성을 'trial-시험'이라고 함.
+    -   연구 생성은 보통 다음 과정을 포함함.
+        1) 다음 trial에서 변경될 하이퍼파라미터 선택
+        2) 이 하이퍼파라미터들이 가질 수 있는 값 선택("탐색 공간")
+        3) epoch 결정
+        4) 탐색공간에서 epoch만큼 샘플링할 자동화 탐색 알고리즘이나 수동 지정
+-   '스터디'의 목적은 과학적 파라미터의 다른 값으로 파이프라인을 실행하면서, 동시에 성가신 파라미터를 '**최적화**'하여 과학적 파라미터의 서로 다른 값들 간 공정한 비교를 하는 것임.
+-   **가장 단순한 케이스**: 과학적 파라미터의 각 구성에 대해 별도의 '스터디'를 만들고, 각 '스터디'에서 성가신 파라미너를 조정.
+    - 예: 최적의 옵티마이저를 Nesterov momentum과 Adam 중에서 선택하는 것이 목표라면,
+        1) optimizer="Nesterov_momentum"이고 방해 하이퍼파라미터가 {learning_rate, momentum}인 연구 하나
+        2) optimizer="Adam"이고 방해 하이퍼파라미터가 {learning_rate, beta1, beta2, epsilon}인 연구 하나를 만들 수 있음.
+
+    -   성가신 파라미터 최적화를 위해 gradient-free 최적화 알고리즘(베이지안 최적화, evolutionary 알고리즘)을 사용할 수 있지만, 튜닝의 탐색 단계에서는 준무작위 탐색(quasi-random search)를 [더 선호함](#why-use-quasi-random-search-instead-of-more-sophisticated-black-box-optimization-algorithms-during-the-exploration-phase-of-tuning)
+-   **복잡한 케이스**: 즉 **많은 수의 과학적 파라미터를 비교**할때는 독립적인 '스터디'를 많이 만드는 것이 비실용적일 수 있음. 이 경우:
+    -   과학적 파라미터를 성가신 파라미터와 같은 탐색 공간에 포함시키고, 단일 '스터디'에서 둘 다의 값을 샘플링하는 탐색 알고리즘을 사용할수 있음.
+    -   이 접근법에서는 조건부 하이퍼파라미터가 문제를 일으킬 수 있음. 과학적 파라미터의 모든 값에 대해 성가신 파라미터 세트가 동일하지 않으면 탐색 공간을 지정하기 어렵기 때문임.
+    -   이 경우, 과학적 하이퍼파라미터의 값들을 비교적 균일하게 샘플링할 수 있도록 하는 것이 중요함. [quasi-random search](#why-use-quasi-random-search-instead-of-more-sophisticated-black-box-optimization-algorithms-during-the-exploration-phase-of-tuning)
 
 </details>
 
@@ -548,90 +445,48 @@
 
 <br>
 
+**정보성과 비용 효율성 사이의 균형 잡기**
 
--   When designing a study or sequence of studies, we need to allocate a limited
-    budget in order to adequately achieve the following three desiderata:
-    1.  Comparing enough different values of the scientific hyperparameters.
-    2.  Tuning the nuisance hyperparameters over a large enough search space.
-    3.  Sampling the search space of nuisance hyperparameters densely enough.
--   The better we can achieve these three desiderata, the more insight we can
-    extract from our experiment.
-    -   Comparing as many values of the scientific hyperparameters as possible
-        broadens the scope of the insights we gain from the experiment.
-    -   Including as many nuisance hyperparameters as possible and allowing each
-        nuisance hyperparameter to vary over as wide a range as possible
-        increases our confidence that a "good" value of the nuisance
-        hyperparameters **exists** in the search space for each configuration of
-        the scientific hyperparameters.
-        -   Otherwise, we might make unfair comparisons between values of the
-            scientific hyperparameters by not searching possible regions of the
-            nuisance parameter space where better values might lie for some
-            values of the scientific parameters.
-    -   Sampling the search space of nuisance hyperparameters as densely as
-        possible increases our confidence that any good settings for the
-        nuisance hyperparameters that happen to exist in our search space will
-        be found by the search procedure.
-        -   Otherwise, we might make unfair comparisons between values of the
-            scientific parameters due to some values getting luckier with the
-            sampling of the nuisance hyperparameters.
--   Unfortunately, improvements in *any* of these three dimensions require
-    either increasing the number of trials, and therefore increasing the
-    resource cost, or finding a way to save resources in one of the other
-    dimensions.
-    -   Every problem has its own idiosyncrasies and computational constraints,
-        so how to allocate resources across these three desiderata requires some
-        level of domain knowledge.
-    -   After running a study, we always try to get a sense of whether the study
-        tuned the nuisance hyperparameters well enough (i.e. searched a large
-        enough space extensively enough) to fairly compare the scientific
-        hyperparameters (as described in greater detail
-        [below](#extracting-insight-from-experimental-results)).
+-   **연구를 설계할때, 제한된 예산을 다음 세 가지 목표를 적절히 달성하도록 할당해야함**
+    1. *충분히 다양한 과학적 파라미터의 값들을 비교*해야함
+    2. *성가신 파라미터*를 *충분히 넓은 탐색 공간*에서 튜닝해야함
+    3. 성가신 파라미터의 *탐색 공간을 충분히 조밀하게* 샘플링 해야함.
+-   이 세 가지 목표를 더 잘 달성할수록, 실험에서 다 많은 통찰을 얻을 수 있음.
+    -   과학적 파라미터의 가능한 많은 값을 비교하면 실험에서 얻는 통찰의 범위가 넓어짐.
+    -   성가신 파라미터의 탐색 범위를 넓게 하면, 그 범위 내에 "좋은" 성가신 파라미터가 있을 가능성이 높음.
+        -   만약 탐색 범위가 너무 좁으면, 일부 과학적 파라미터 설정에 대해 최적의 성가신 파라미터를 놓칠 수 있음.
+        -   이는 과학적 파라미터 같의 공정한 비교를 어렵게 할 수 있음.
+-   안타깝게도, 이 세가지중 어느 하나라도 개선하려면 시도 횟수를 늘려 자원 비용을 증가 시키거나,
+    다른 차원에서 자원을 절약할 방법을 찾아야 함.
+    -   모든 문제는 고유한 특성과 제약이 있음로, 이 세가지 목표에 자원을 어떻게 할당할지는 일정 수준의 도메인 지식이 필요함.
+    -   '스터디'를 실행한 후에는 항상 성가신 파라미터를 충분히 잘 튜닝했는지(즉, 충분히 넓은 공간을 광범위하게 탐색했는지) 확인하려 노력해야함.
+        [참조](#extracting-insight-from-experimental-results)).
 
 </details>
 
 ### Extracting insight from experimental results
 
-***Summary:*** *In addition to trying to achieve the original scientific goal of
-each group of experiments, go through a checklist of additional questions and,
-if issues are discovered, revise the experiments and rerun them.*
+**실험 결과의 깊이 있는 분석을 통해 더 나은 통찰과 신뢰성 있는 결론을 도출하는 방법**
 
--   Ultimately, each group of experiments has a specific goal and we want to
-    evaluate the evidence the experiments provide toward that goal.
-    -   However, if we ask the right questions, we will often find issues that
-        need to be corrected before a given set of experiments can make much
-        progress towards their original goal.
-        -   If we don’t ask these questions, we may draw incorrect conclusions.
-    -   Since running experiments can be expensive, we also want to take the
-        opportunity to extract other useful insights from each group of
-        experiments, even if these insights are not immediately relevant to the
-        current goal.
--   Before analyzing a given set of experiments to make progress toward their
-    original goal, we should ask ourselves the following additional questions:
-    -   [Is the search space large enough?](#identifying-bad-search-space-boundaries)
-        -   If the optimal point from a study is near the boundary of the search
-            space in one or more dimensions, the search is probably not wide
-            enough. In this case, we should run another study with an expanded
-            search space.
-    -   [Have we sampled enough points from the search space?](#not-sampling-enough-points-in-the-search-space)
-        -   If not, run more points or be less ambitious in the tuning goals.
-    -   What fraction of the trials in each study are **infeasible** (i.e.
-        trials that diverge, get really bad loss values, or fail to run at all
-        because they violate some implicit constraint)?
-        -   When a very large fraction of points in a study are **infeasible**
-            we should try to adjust the search space to avoid sampling such
-            points, which sometimes requires reparameterizing the search space.
-        -   In some cases, a large number of infeasible points can indicate a
-            bug in the training code.
-    -   [Does the model exhibit optimization issues?](#how-can-optimization-failures-be-debugged-and-mitigated)
-    -   [What can we learn from the training curves of the best trials?](#examining-the-training-curves)
-        -   For example, do the best trials have training curves consistent with
-            problematic overfitting?
--   If necessary, based on the answers to the questions above, refine the most
-    recent study (or group of studies) to improve the search space and/or sample
-    more trials, or take some other corrective action.
--   Once we have answered the above questions, we can move on to evaluating the
-    evidence the experiments provide towards our original goal (for example,
-    [evaluating whether a change is useful](#detecting-whether-a-change-is-useful-with-isolation-plots)).
+***Summary:*** *각 실험 그룹의 원래 과학적 목표를 달성하려는 노력 외에도, 추가적인 질문 체크리스트를 검토하고, 
+문제가 발견되면 실험을 수정하고 다시 실행합니다.*
+
+-   궁극적으로, 각 실험 그룹은 특정 목표를 가지며, 그 목표를 위해 실험에서 발견된 증거를 평가 하는것임.
+    -   그러나 적절한 질문을 하면, 주어진 실험 세트(파라미터 조합들)가 원래 목표를 위해 실행되기 전에 수정해야할 문제를 종종 발견할 수 있음.
+        -   이러한 질문을 하지 않으면 잘못된 결론을 내릴 수 있음.
+    -   실험 실행 비용이 많이 들기 때문에, 현재 목표와 직접 관련이 없더라도 각 실험 그룹에서 다른 유용한 통찰을 얻을 기회를 가져야 함.
+-   다음 실험을 진행하기 이전 다음 항목들을 점검해야함.
+    1)  탐색 공간은 충분히 큰가 [참고](#identifying-bad-search-space-boundaries)
+        -   최적의 값을 찾았는데 탐색공간의 경계에 있다면 탐색공간 확대 해보자
+    2)  탐색 공간에서 충분한 포인트를 샘플링 했는가 [참고](#not-sampling-enough-points-in-the-search-space)
+    3)  각 '스터디'에서 실행 불가능한 시도의 비율은 얼마인가? (diverge, bad loss value, fail to run)
+        -   탐색 공간이 너무 넓을 경우 제대로된 실험이 안될수 있기 때문에 범위를 잘 잡아야 함
+        -   가끔 코드에 오류가 있어서 이런 문제가 발생하기도 함.
+    -   모델 최적화에 문제가 있나? [참고](#how-can-optimization-failures-be-debugged-and-mitigated)
+    -   최고 성능을 보이는 곡선에서 무엇을 배울수 있나? [참고](#examining-the-training-curves)
+-   필요한 경우, 위 질문의 답변을 바탕으로 가장 최근의 연구를 개선하여 탐색 공간을 수정하거나 더 많은 시도를 샘플링해서 수정해야 함.
+-   
+-   위 질문들에 대해 답변한 후, 실험의 결과물들을 평가할 수 있음. [참고](#detecting-whether-a-change-is-useful-with-isolation-plots)).
 
 #### Identifying bad search space boundaries
 
