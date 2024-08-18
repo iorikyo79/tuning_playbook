@@ -11,7 +11,7 @@
 
 ## Table of Contents
 
--   [1. Who is this document for?](#1.-who-is-this-document-for)
+-   [1. Who is this document for?](#1-who-is-this-document-for)
 -   [2. Why a tuning playbook?](#why-a-tuning-playbook)
 -   [3. Guide for starting a new project](#guide-for-starting-a-new-project)
     -   [3.1 Choosing the model architecture](#choosing-a-model-architecture)
