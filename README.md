@@ -23,14 +23,12 @@
     -   [4.2 Exploration vs exploitation](#42-exploration-vs-exploitation)
     -   [4.3 Choosing the goal for the next round of experiments](#43-choosing-the-goal-for-the-next-round-of-experiments)
     -   [4.4 Designing the next round of experiments](#44-Designing-the-next-round-of-experiments)
-    -   [4.5 Determining whether to adopt a training pipeline change or
-        hyperparameter
-        configuration](#45-Determining-whether-to-adopt-a-training-pipeline-change-or-hyperparameter-configuration)
+    -   [4.5 Determining whether to adopt a training pipeline change or hyperparameter configuration](#45-Determining-whether-to-adopt-a-training-pipeline-change-or-hyperparameter-configuration)
     -   [4.6 After exploration concludes](#46-After-exploration-concludes)
 -   [5. Determining the number of steps for each training run](#5-Determining-the-number-of-steps-for-each-training-run)
-    -   [5.1 Deciding how long to train when training is not compute-bound](#5-1Deciding-how-long-to-train-when-training-is-not-compute-bound)
-    -   [5.2 Deciding how long to train when training is compute-bound](#5-2Deciding-how-long-to-train-when-training-is-compute-bound)
--   [6. [Additional guidance for the training pipeline](#6-Additional-guidance-for-the-training-pipeline)
+    -   [5.1 Deciding how long to train when training is not compute-bound](#51-Deciding-how-long-to-train-when-training-is-not-compute-bound)
+    -   [5.2 Deciding how long to train when training is compute-bound](#52-Deciding-how-long-to-train-when-training-is-compute-bound)
+-   [6. Additional guidance for the training pipeline](#6-Additional-guidance-for-the-training-pipeline)
     -   [6.1 Optimizing the input pipeline](#61-Optimizing-the-input-pipeline)
     -   [6.2 Evaluating model performance](#62-Evaluating-model-performance)
     -   [6.3 Saving checkpoints and retrospectively selecting the best checkpoint](#63-Saving-checkpoints-and-retrospectively-selecting-the-best-checkpoint)
