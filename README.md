@@ -488,20 +488,20 @@
 
 #### Identifying bad search space boundaries
 
+**탐색 공간의 경계를 적절히 설정하는 것의 중요성과 그 방법**
+
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
 
--   A search space is suspicious if the best point sampled from it is close to
-    its boundary. We might find an even better point if we expanded the search
-    range in that direction.
--   To check search space boundaries, we like to plot completed trials on what
-    we call **basic hyperparameter axis plots** where we plot the validation
-    objective value versus one of the hyperparameters (e.g. learning rate). Each
-    point on the plot corresponds to a single trial.
-    -   The validation objective value for each trial should usually be the best
-        value it achieved over the course of training.
+-   탐색 공간의 의심 기준:
+    -   최고 성능 지점이 탐색 공간의 경계에 가까울 때
+    -   이 경우, 해당 방향으로 탐색 범위를 확장하면 더 나은 지점을 찾을 수 있을 수 있음.
+-   탐색 공간의 경계 확인 방법:
+    -   일반적인 2차원 플롯을 사용. 학습률 기준으로 보고 싶다면 x축을 학습률, y축을 목표값(accuracy or loss 등)으로
+        설정하고 각 점은 각 run에서 달성한 최고 수치만을 표시한다.
+        
 
 <p align="center" id="figure-1">
 <img src="assets/good_and_bad_search_spaces.png" width="98%" alt="Example of good search space boundaries">
@@ -509,131 +509,79 @@
 
 <p align="center"><b>Figure 1:</b> Examples of bad search space boundaries and acceptable search space boundaries.</p>
 
--   The plots in [Figure 1](#figure-1) show the error rate (lower is better)
-    against the initial learning rate.
--   If the best points cluster towards the edge of a search space (in some
-    dimension), then the search space boundaries might need to be expanded until
-    the best observed point is no longer close to the boundary.
--   Often, a study will include "infeasible" trials that diverge or get very bad
-    results (marked with red Xs in the above plots).
-    -   If all trials are infeasible for learning rates greater than some
-        threshold value, and if the best performing trials have learning rates
-        at the edge of that region, the model [may suffer from stability issues
-        preventing it from accessing higher learning
-        rates](#how-can-optimization-failures-be-debugged-and-mitigated).
+-   Figure 1은 초기 learning rate에 대한 error rate를 보여줌.
+-   탐색 공간 평가:
+    -   최고 성능 지점들이 탐색 공간의 가장자리에 몰려 있다면, 해당 차원의 탐색 공간 경계를 확장해야 할수 있음
+    -   확장은 최고 관찰 지점이 더 이상 경계에 가깝지 않을 때까지 진행
+-   실행 불가능한 trial의 처리:
+    -   실행 불가능이란 발산하거나 매우 나쁜 결과를 얻는 시도들을 말함(그림에서 빨간 x로 표시됨).
+    -   특정 임계값 이상의 학습률에서 모든 시도가 실행 불가능 하고, 최고 성능 시도가 그 영역의 가장자리에 있다면,
+        모델이 [더 높은 학습률을 사용하지 못하게 하는 안전성 문제가 있을 수 있음.](#how-can-optimization-failures-be-debugged-and-mitigated).
+
 
 </details>
 
 #### Not sampling enough points in the search space
 
+**탐색 공간에서 충분한 포인트를 샘플링하지 않는 문제**
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
 
--   In general,
-    [it can be very difficult to know](#how-many-trials-are-needed-to-get-good-results-with-quasi-random-search)
-    if the search space has been sampled densely enough. 🤖
--   Running more trials is of course better, but comes at an obvious cost.
--   Since it is so hard to know when we have sampled enough, we usually sample
-    what we can afford and try to calibrate our intuitive confidence from
-    repeatedly looking at various hyperparameter axis plots and trying to get a
-    sense of how many points are in the "good" region of the search space.
-
+-   일반적으로, 탐색 공간이 충분히 밀도 있게 샘플링되었는지 알기 [매우 어려움.](#how-many-trials-are-needed-to-get-good-results-with-quasi-random-search)
+-   더 많은 시도를 실행하는 것이 좋지만, 비용이 너무 많이 들어감.
+-   보통 ***감당할수 있는 정도만 샘플링하고 다양한 파라미터 축 플롯을 그려보면서 탐색 공간의 "좋은"영역에
+    얼마나 많은 포인트가 있는지 감을 잡는 수 밖에 없음.***
+    
 </details>
 
 #### Examining the training curves
 
+**훈련 곡선 검토하기**
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
 
-***Summary:*** *Examining the training curves is an easy way to identify common
-failure modes and can help us prioritize what actions to take next.*
+***Summary:*** *훈련 곡선을 검토하는 것은 일반적인 실패 모드를 식별하는 쉬운 방법이며,
+다음에 취해야할 조치의 우선순위를 정하는 데 도움이 됨*
 
--   Although in many cases the primary objective of our experiments only
-    requires considering the validation error of each trial, we must be careful
-    when reducing each trial to a single number because it can hide important
-    details about what’s going on below the surface.
--   For every study, we always look at the **training curves** (training error
-    and validation error plotted versus training step over the duration of
-    training) of at least the best few trials.
--   Even if this is not necessary for addressing the primary experimental
-    objective, examining the training curves is an easy way to identify common
-    failure modes and can help us prioritize what actions to take next.
--   When examining the training curves, we are interested in the following
-    questions.
--   Are any of the trials exhibiting **problematic overfitting?**
-    -   Problematic overfitting occurs when the validation error starts
-        *increasing* at some point during training.
-    -   In experimental settings where we optimize away nuisance hyperparameters
-        by selecting the "best" trial for each setting of the scientific
-        hyperparameters, we should check for problematic overfitting in *at
-        least* each of the best trials corresponding to the settings of the
-        scientific hyperparameters that we’re comparing.
-        -   If any of the best trials exhibits problematic overfitting, we
-            usually want to re-run the experiment with additional regularization
-            techniques and/or better tune the existing regularization parameters
-            before comparing the values of the scientific hyperparameters.
-            -   This may not apply if the scientific hyperparameters include
-                regularization parameters, since then it would not be surprising
-                if low-strength settings of those regularization parameters
-                resulted in problematic overfitting.
-        -   Reducing overfitting is often straightforward using common
-            regularization techniques that add minimal code complexity or extra
-            computation (e.g. dropout, label smoothing, weight decay), so it’s
-            usually no big deal to add one or more of these to the next round of
-            experiments.
-        -   For example, if the scientific hyperparameter is "number of hidden
-            layers" and the best trial that uses the largest number of hidden
-            layers exhibited problematic overfitting, then we would usually
-            prefer to try it again with additional regularization instead of
-            immediately selecting the smaller number of hidden layers.
-        -   Even if none of the "best" trials are exhibiting problematic
-            overfitting, there might still be a problem if it occurs in *any* of
-            the trials.
-            -   Selecting the best trial suppresses configurations exhibiting
-                problematic overfitting and favors those that do not. In other
-                words, it will favor configurations with more regularization.
-            -   However, anything that makes training worse can act as a
-                regularizer, even if it wasn't intended that way. For example,
-                choosing a smaller learning rate can regularize training by
-                hobbling the optimization process, but we typically don't want
-                to choose the learning rate this way.
-            -   So we must be aware that the "best" trial for each setting of
-                the scientific hyperparameters might be selected in such a way
-                that favors "bad" values of some of the scientific or nuisance
-                hyperparameters.
--   Is there high step-to-step variance in the training or validation error late
-    in training?
-    -   If so, this could interfere with our ability to compare different values
-        of the scientific hyperparameters (since each trial randomly ends on a
-        "lucky" or "unlucky" step) and our ability to reproduce the result of
-        the best trial in production (since the production model might not end
-        on the same "lucky" step as in the study).
-    -   The most likely causes of step-to-step variance are batch variance (from
-        randomly sampling examples from the training set for each batch), small
-        validation sets, and using a learning rate that’s too high late in
-        training.
-    -   Possible remedies include increasing the batch size, obtaining more
-        validation data, using learning rate decay, or using Polyak averaging.
--   Are the trials still improving at the end of training?
-    -   If so, this indicates that we are in the
-        ["compute bound" regime](#determining-the-number-of-steps-for-each-training-run)
-        and we may benefit from
-        [increasing the number of training steps](#Deciding-how-long-to-train-when-training-is-compute-bound)
-        or changing the learning rate schedule.
--   Has performance on the training and validation sets saturated long before
-    the final training step?
-    -   If so, this indicates that we are in the
-        ["not compute-bound"](#determining-the-number-of-steps-for-each-training-run)
-        regime and that we may be able to
-        [decrease the number of training steps](#deciding-how-long-to-train-when-training-is-not-compute-bound).
--   Although we cannot enumerate them all, there are many other additional
-    behaviors that can become evident from examining the training curves (e.g.
-    training loss *increasing* during training usually indicates a bug in the
-    training pipeline).
+-   실험의 주요 목적이 각 시도의 검증 오차만을 고려하는 경우가 많지만, 각 시도를 단일 숫자로 축소시
+    주의가 필요함. 이는 표면 아래에서 일어나는 중요한 세부 사항을 숨길 수 있기 때문.
+-   모든 연구에서, 우리는 항상 최소한 가장 좋은 몇 개의 시도에 대한 훈련 곡선을 살펴봄.
+    (훈련 곡선: 훈련 단계에 따른 훈련 오차와 검증 오차 그래프)
+-   이는 주요 실험 목적을 다루는 데 필요하지 않더라도, 훈련 곡선을 검토하는 것은 일반적인 실패 모드를 식별하는 쉬운 방법이며,
+    다음에 취해야 할 조치의 우선순위를 정하는데 도움이 될수 있음.
+-   훈련 곡선 검토시, 다음과 같은 질문에 관심을 갖아야 함.
+-   ***문제 있는 과적합을 보이는 시도가 보이는가?***
+    -   **문제가 되는 과적합의 정의**:
+        -   *훈련 중 어느 시점에서 검증 오차가 증가하기 시작하는 경우*
+    -   검사 대상:
+        -   최소한 과학적 파라미터의 각 설정에 해당하는 최고 성능 시도들은 과적합인지 확인 해봐야함
+    -   과적합 발견시 대응 방안:
+        -   일반적으로 추가적 정규화 기법을 적용하거나 기존 정규화 파라미터를 더 잘 튜닝하여 실험을 다시 실행
+            -  이미 정규화가 적용되었다면 정규화 관련 파라미터를 좀더 튜닝할것. 정규화 강도가 낮으면 과적합 발생 가능.
+    -   과적합 감소 방법:
+        -   일반적인 정규화 기법 사용 (drop-out, label smoothing, weight decay)
+        -   코드를 최대한 복잡하지 않게 간단하게 유지하면서 정규화를 적용할것.
+    -   주의 사항:
+        -   최고 시도에서 문제가 되는 과적합이 없더라도, 다른 시도에서 발생한다면 여전히 문제가 될 수 있음.
+        -   최고 시도 선택 과정이 의도치 않게 더 많은 정규화를 선호할 수 있음.
+        -   정규화 방식이 아니더라도 훈련을 잘 안되도록 하는 요소가 정규화 역할을 할 수 있음(예: 작은 lr과 같이 학습이 더디게 되는 현상 유발이 정규화와 비슷하지만... 별로 추천하는 방식은 아님)
+        -   최고 시도 선택이 일부 과학적/성가신 파라미터의 나쁜 값을 선호하는 방식으로 이루어질수도 있음.(실제로는 나쁜 파라미터인데 오히려 정규화 역할을 해서 학습이 더 잘될수도 있다)            
+-   ***학습 후반부에 훈련 또는 검증 오차에서 단계별로 큰 변동성이 있는가?***
+    -   만약 그렇다면, 이는 과학적 파라미터의 다양한 값을 비교하는 능력(각 시도가 무작위로 "운이 좋은" 또는 "운이 나쁜"단계에서 끝나기 때문)과 최상의 시도 결과를 실제 환경에서 재현하는 능력(실제 모델이 연구에서의 "운이 좋은" 단계와 같은 단계에서 끝나지 않을 수 있으므로)을 저해할 수 있다.
+    -   단계별 변동성의 가장 가능성 있는 원인은 배치 분산(각 배치마다 훈련 세트에서 무작위로 예제를 샘플링하는 것), 작은 검증 세트, 그리고 학습 후반부에 너무 높은 학습률을 사용하는 것입니다.
+    -   가능한 해결책으로는 배치 크기 증가, 더 많은 검증 데이터 확보, 학습률 감소 사용, 또는 polyak averaging 사용등이 있음.
+        -  시도들이 훈련 종료 시점에도 여전히 개선되고 있나?
+           -  그렇다면, 이는 ["계산 제한"영역](#determining-the-number-of-steps-for-each-training-run)에
+              있음을 나타냄. [훈련 단계수를 늘리거나](#Deciding-how-long-to-train-when-training-is-compute-bound)
+               학습률 스케쥴을 변경하는것이 필요함.
+-   훈련 및 검증세트에서의 성능이 최종 훈련 단계보다 훨신 이전에 포화되었나?
+    -   그렇다면, 이는 우리가 ["계산 제한이 아닌"영역에"](#determining-the-number-of-steps-for-each-training-run) 있음을 나타냄. 이는 [훈련 단계를 줄여야 함](#deciding-how-long-to-train-when-training-is-not-compute-bound).
+-   모든 경우를 열거할 수는 없지만, 훈련 곡선을 검토하면 다른 여러가지 추가적인 행동들이 명확해질 수 있음.
+    (예, 훈련중 훈련 손실이 증가하는 것은 보통 훈련 파이프라인에 버그가 있는 경우임)
 
 </details>
 
