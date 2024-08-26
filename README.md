@@ -633,9 +633,14 @@ ImageNet에서 훈련된 ResNet-50의 최적 weight decay 값을 조사하는 �
 
 ### 4.5 Determining whether to adopt a training pipeline change or hyperparameter configuration
 
-훈련 파이프라인 변경 또는 하이퍼파라미터 구성 채택 여부 결정하기
+훈련 파이프라인 변경과 하이퍼파라미터 설정 변경중 어떤 방법을 채택할지 결정하는 방법
 
 ***Summary:*** *모델이나 훈련 절차를 변경하거나 새로운 하이퍼파라미터 구성을 채택할지 결정할 때, 우리는 결과에 영향을 미치는 다양한 변동 요인들을 이해해야 합니다.
+
+-   스터디 변동이란(Study Variance) : 하이퍼파라미터를 변경하며 최적화시 발생하는 모델간의 성능차
+    -  원인 : 무작위 초기화, 데이터 셔플링, 드롭아웃 등 학습 과정의 확률적 요소
+-   시도 변동이란(Trial Variance) : 동일한 하이퍼파라미터 설정으로 여러번 모델을 학습시 발생하는 성능차
+    -  원인 : 다양한 하이퍼파라미터 조합, 탐색 알고리즘, 탐색 범위 등
 
 -   모델 개선을 시도할 때, 새로운 변경사항이 처음에는 기존 설정보다 더 나은 검증 오류를 보이지만,
     실험을 반복하면 일관된 이점이 없어지는 경우가 있음. 이러한 일관성 없는 결과를 야기할 수 있는 주요 변동 요인들을
@@ -648,35 +653,17 @@ ImageNet에서 훈련된 ResNet-50의 최적 weight decay 값을 조사하는 �
     -   **하이퍼파라미터 검색 변동** 또는 **스터디 변동**: 하이퍼파라미터를 선택하는 과정에서 발생하는 결과의 차이.
         - 예: 같은 검색 공간에서 실험을 진행하더라도, 준무작위 검색의 시작점이 다르면
           서로 다른 하이퍼파라미터 값을 선택하게 되어 결과가 달라질 수 있음.
-    - 데이터 수집 및 샘플링 변동: 훈련, 검증, 테스트 데이터를 무작위로 나누거나 훈련 데이터를 생성하는 과정에서 발생하는 차이.
-      
-    - 
--   It is all well and good to make comparisons of validation error rates
-    estimated on a finite validation set using fastidious statistical tests, but
-    often the trial variance alone can produce statistically significant
-    differences between two different trained models that use the same
-    hyperparameter settings.
--   We are most concerned about study variance when trying to make conclusions
-    that go beyond the level of an individual point in hyperparameters space.
-    -   The study variance depends on the number of trials and the search space
-        and we have seen cases where it is larger than the trial variance as
-        well as cases where it is much smaller.
--   Therefore, before adopting a candidate change, consider running the best
-    trial N times to characterize the run-to-run trial variance.
-    -   Usually, we can get away with only recharacterizing the trial variance
-        after major changes to the pipeline, but in some applications we might
-        need fresher estimates.
-    -   In other applications, characterizing the trial variance is too costly
-        to be worth it.
--   At the end of the day, although we only want to adopt changes (including new
-    hyperparameter configurations) that produce real improvements, demanding
-    complete certainty that something helps isn't the right answer either.
--   Therefore, if a new hyperparameter point (or other change) gets a better
-    result than the baseline (taking into account the retrain variance of both
-    the new point and the baseline as best we can), then we probably should
-    adopt it as the new baseline for future comparisons.
-    -   However, we should only adopt changes that produce improvements that
-        outweigh any complexity they add.
+    - 데이터 수집 및 샘플링 변동: 훈련, 검증, 테스트 데이터를 무작위로 나누거나 훈련 데이터를 생성하는 과정에서 발생하는 차이. 
+-   제한된 검증 데이터로 정확한 통계 검증을 하는 것도 좋지만, 같은 설정으로 훈련해도 우연히 의미 있는 차이가 있을 수 있음.
+-   전체적인 성능을 판단할 때는 설정 검색의 변동이 중요함.
+    -   스터디 변동은 실험 횟수와 검색 공간에 따라 달라지며, 때로 시도 변동보다 크거나 작을수 있음.
+-   따라서 새로운 변경사항을 채택하기 전에, 가장 좋은 결과를 보인 시도를 여러번 반복하여 실행 간 변동을 파악하는 것이 좋음.
+    -   일반적으로 훈련 파이프라인에 큰 변화가 있을 때만 이 변동을 재평가하면 되지만, 때로는 더 자주 새로운 추정이 필요할 수 있음
+    -   일부 경우 이러한 변동 특성화가 비용 대비 효과적이지 않을 수 있음.
+- 결국, 실제 개선을 가져오는 변경사항만을 채택하고 싶지만, 어떤 것이 확실히 도움이 된다는 완벽한 확신을 요구하는 것도 바람직하지 않음.
+- 따라서 새로운 하이퍼파라미터 설정(또는 다른 변경사항)이 기존 기준선보다 더 나은 결과를 보인다면(새 설정과 기준선 모두의 재훈련 변동을 그려할때)
+  이를 향후 비교를 위한 새로운 기존선으로 채택하는 것이 좋다.
+    -   단, 추가되는 복잡성을 상쇄할 만한 개선을 가져오는 변경사항만을 채택해야함.
 
 ### 4.6 After exploration concludes
 
