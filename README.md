@@ -667,78 +667,52 @@ ImageNet에서 훈련된 ResNet-50의 최적 weight decay 값을 조사하는 �
 
 ### 4.6 After exploration concludes
 
-***Summary:*** *Bayesian optimization tools are a compelling option once we’re
-done exploring for good search spaces and have decided what hyperparameters even
-should be tuned at all.*
+탐색이 끝난 후
 
--   At some point, our priorities will shift from learning more about the tuning
-    problem to producing a single best configuration to launch or otherwise use.
--   At this point, there should be a refined search space that comfortably
-    contains the local region around the best observed trial and has been
-    adequately sampled.
--   Our exploration work should have revealed the most essential hyperparameters
-    to tune (as well as sensible ranges for them) that we can use to construct a
-    search space for a final automated tuning study using as large a tuning
-    budget as possible.
--   Since we no longer care about maximizing our insight into the tuning
-    problem, many of
-    [the advantages of quasi-random search](#why-use-quasi-random-search-instead-of-more-sophisticated-black-box-optimization-algorithms-during-the-exploration-phase-of-tuning)
-    no longer apply and Bayesian optimization tools should be used to
-    automatically find the best hyperparameter configuration.
-    -   [Open-Source Vizier](https://github.com/google/vizier) implements
-        a variety of sophisticated algorithms for tuning ML models, including
-        Bayesian Optimization algorithms.
-    -   If the search space contains a non-trivial volume of divergent points
-        (points that get NaN training loss or even training loss many standard
-        deviations worse than the mean), it is important to use black box
-        optimization tools that properly handle trials that diverge (see
-        [Bayesian Optimization with Unknown Constraints](https://arxiv.org/abs/1403.5607)
-        for an excellent way to deal with this issue). [Open-Source Vizier](https://github.com/google/vizier)
-        has support for divergent points by marking trials as infeasible, although it may not use our preferred approach from [Gelbart et al.](https://arxiv.org/abs/1403.5607), depending on how it is configured.
--   At this point, we should also consider checking the performance on the test
-    set.
-    -   In principle, we could even fold the validation set into the training
-        set and retraining the best configuration found with Bayesian
-        optimization. However, this is only appropriate if there won't be future
-        launches with this specific workload (e.g. a one-time Kaggle
-        competition).
+***Summary:*** *탐색이 완료되고 어떤 하이퍼파라미터를 튜닝해야 할지 결정한 후에는 베이지안 최적화 도구가 매력적인 선택지이다*
+
+-   어느 시점에서 우리의 우선순위는 튜닝 문제에 대해 더 많이 배우는 것에서 출시하거나 사용할 단일 최적 구성을 만드는 것으로 전환된다.
+-   이 시점에서는 관찰된 **최고의 trial 주변**의 로컬 영역을 충분히 포함하고 적절하게 샘플링된 **정제된 search space**가 있어야 한다.
+-   우리의 탐색 작업은 가장 중요한 하이퍼파라미터를 튜닝하는데 필요한 정보(그리고 그것의 합리적 범위)를 밝혀냈을 것이며,
+    이를 통해 가능한 한 큰 튜닝 예산을 사용하여 최종 자동화된 튜닝 연구를 위한 search space를 구성할수 있다.
+-   더 이상 튜닝 문제에 대한 통찰력을 극대화하는 것에 관심이 없기 때문에, [quasi-random search](#why-use-quasi-random-search-instead-of-more-sophisticated-black-box-optimization-algorithms-during-the-exploration-phase-of-tuning) 많은 장점들이 더 이상 적용되지 않으며 베이지안 최적화 도구를 사용하여 자동으로 최상의 하이퍼파라미터 구성을 찾아야 한다.
+    -   [Open-Source Vizier](https://github.com/google/vizier)는 베이지안 최적화 알고리즘을 포함하여 ML 모델을 튜닝하기 위한
+        다양한 정교한 알고리즘을 구현함.
+    -   Search space에 상당한 양의 발산점(NaN 훈련 손실이나 평균보다 많은 표준편차만큼 나쁜 훈련 손실을 얻는 점들)이 포함된 경우
+        발산하는 trial을 적절히 처리하는 black box 최적화 도구를 사용하는 것이 중요. 
+        이 문제를 다루는 훌륭한 방법은 [Bayesian Optimization with Unknown Constraints](https://arxiv.org/abs/1403.5607)
+        . [Open-Source Vizier](https://github.com/google/vizier)는 trial을 infeasible로 표시함으로써 발사점을 지원하지만,
+        구성 방식에 따라 선호되는 접근방식을 사용[Gelbart et al.](https://arxiv.org/abs/1403.5607)
+- 이 시점에서 테스트 세트에 대한 성능도 확인해야함
+    - 원칙적으로 검증 세트를 훈련 세트에 포함시키고 베이지안 최적화로 찾은 최상의 구성으로 재훈련할수 있음.
+    - 그러나 이는 이 특정 워크로드에 대한 향후 출시가 없을 경우에만 적절함 (예, 일회성 캐글 대회)
 
 ## 5. Determining the number of steps for each training run
 
--   There are two types of workloads: those that are compute-bound and those
-    that are not.
--   When training is **compute-bound**, training is limited by how long we are
-    willing to wait and not by how much training data we have or some other
-    factor.
-    -   In this case, if we can somehow train longer or more efficiently, we
-        should see a lower training loss and, with proper tuning, an improved
-        validation loss.
-    -   In other words, *speeding up* training is equivalent to *improving*
-        training and the "optimal" training time is always "as long as we can
-        afford."
-    -   That said, just because a workload is compute-limited doesn't mean
-        training longer/faster is the only way to improve results.
--   When training is **not compute-bound**, we can afford to train as long as we
-    would like to, and, at some point, training longer doesn't help much (or
-    even causes problematic overfitting).
-    -   In this case, we should expect to be able to train to very low training
-        loss, to the point where training longer might slightly reduce the
-        training loss, but will not meaningfully reduce the validation loss.
-    -   Particularly when training is not compute-bound, a more generous
-        training time budget can make tuning easier, especially when tuning
-        learning rate decay schedules, since they have a particularly strong
-        interaction with the training budget.
-        -   In other words, very stingy training time budgets might require a
-            learning rate decay schedule tuned to perfection in order to achieve
-            a good error rate.
--   Regardless of whether a given workload is compute-bound or not, methods that
-    increase the variance of the gradients (across batches) will usually result
-    in slower training progress, and thus may increase the number of training
-    steps required to reach a particular validation loss. High gradient variance
-    can be caused by:
-    -   Using a smaller batch size
-    -   Adding data augmentation
-    -   Adding some types of regularization (e.g. dropout)
+각 훈련 실행싱의 step number 결정하기
+
+-   워크로드는 두가지 유형이 있음 : 컴퓨팅제한(compute-bound)과 그렇지 않은 경우
+-   훈련이 컴퓨팅 제한적(compute-bound)일때 , 훈련은 우리가 기다릴 수 있는 시간에 의해 제한되며
+    훈련 데이터의 양이나 다른 요인에 의해 제한되지 않음
+    -   이 경우, 어떻게든 더 오래 또는 더 효율적으로 훈련할 수 있다면 더 낮은 훈련 손실을 볼 수 있고,
+        적절한 튜닝을 통해 검증 손실도 개선될 수 있음.
+    -   다시 말해, 훈련을 가속화하는 것은 훈련을 개선하는 것과 동일하며 "최적"의 훈련 시간은 항상
+        "우리가 감당할 수 있는 만큼 오래"임.
+    -  그러나 워크로드가 컴퓨팅 제한적이라고 해서 더 오래/빠르게 훈련하는 것만이 결과를 개선하는 유일한 방법은 아님
+-   훈련이 컴퓨팅 제한적이지 않을때, 우리는 원하는 만큼 오래 훈련할 수 있고, 어느 시점에서는 더 오래 훈련하는
+    것이 큰 도움이 되자 않음.(오히려 overfitting 유발할 수 있음)
+    -   이 경우, 매우 낮은 훈련 손실까지 훈련할 수 있을 것으로 예상해야 하며, 더 오래 훈련하면 훈련 손실을 약간
+        훈련 손실을 약간 줄일 수 있지만 검증 손실을 의미 있게 줄이지는 못할것임.
+    -   특히 훈련이 컴퓨팅 제한적이지 않을 때, 더 넉넉한 훈련 시간 예산은 튜닝을 더 쉽게 만들수 있음.
+        특히 Learning rate decay schedule을 튜닝할때 그러함. 이는 learning rate decay schedule이
+        훈련 예산과 특히 강한 상호작용을 하기 때문임.
+            - 다시말해, 매우 인색한 훈련시간은 좋은 오류를 달성하기 위해 완벽하게 튜닝된 learning rate decay schedule이 필요할 수 있음.
+-   주어진 워크로드가 컴퓨팅 제한적인지 아닌지에 관계없이, 그래디언트의 분산(배치간)을 증가시키는 방법들은
+    일반적으로 훈련 진행을 느리게 하며, 따라서 특정 검증 소실에 도달하는데 필요한 훈련스팁수를 증가시킬수 있음.
+    높은 그래드언트 분산은 다음과 같은 원인으로 발생할 수 있음.
+    -  더 작은 batch size 사용
+    -  데이터 augmentation 추가
+    -  일부 유형의 regularization 추가(예, dropout)
 
 ### 5.1 Deciding how long to train when training is *not* compute-bound
 
